@@ -3,7 +3,7 @@
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { SystemStatus } from "@/lib/mock";
+import type { SystemStatus } from "@/lib/db/types";
 
 const STATUS_COLOR: Record<SystemStatus, string> = {
   healthy: "#00d9ff",

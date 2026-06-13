@@ -6,23 +6,18 @@ import {
   Activity,
   Boxes,
   Cpu,
+  GitBranch,
   Lightbulb,
   ListChecks,
+  PlusCircle,
   Send,
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  activity,
-  operatingModes,
-  opportunities,
-  projects,
-  systemStatus,
-  tasks,
-  type SystemStatus,
-} from "@/lib/mock";
+import { operatingModes } from "@/lib/modes";
+import type { DashboardData, SystemStatus } from "@/lib/db/types";
+import QuickAdd from "./QuickAdd";
 
-// The 3D canvas is client and browser only, so load it without server rendering.
 const CentralSphere = dynamic(() => import("./CentralSphere"), {
   ssr: false,
   loading: () => <div className="h-full w-full animate-pulse-glow" />,
@@ -38,6 +33,12 @@ const STATUS_DOT: Record<SystemStatus, string> = {
   healthy: "bg-ok",
   warning: "bg-warn",
   error: "bg-danger",
+};
+
+const priorityColor: Record<string, string> = {
+  high: "text-danger",
+  medium: "text-warn",
+  low: "text-muted",
 };
 
 function Panel({
@@ -66,9 +67,7 @@ function Clock() {
   const [now, setNow] = useState<string | null>(null);
   useEffect(() => {
     const tick = () =>
-      setNow(
-        new Date().toLocaleTimeString("en-GB", { hour12: false, timeZone: "UTC" }) + " UTC",
-      );
+      setNow(new Date().toLocaleTimeString("en-GB", { hour12: false, timeZone: "UTC" }) + " UTC");
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
@@ -76,25 +75,26 @@ function Clock() {
   return <span className="font-mono text-sm text-accent tabular-nums">{now ?? "--:--:--"}</span>;
 }
 
-const priorityColor: Record<string, string> = {
-  high: "text-danger",
-  medium: "text-warn",
-  low: "text-muted",
-};
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-GB", { hour12: false, timeZone: "UTC" });
+}
 
-export default function Dashboard() {
+export default function Dashboard({ data }: { data: DashboardData }) {
+  const status: SystemStatus = "healthy";
+  const projectName = new Map(data.projects.map((p) => [p.id, p.name]));
   const counts = {
-    projects: projects.filter((p) => p.status === "active").length,
-    tasks: tasks.filter((t) => t.status !== "done").length,
-    opportunities: opportunities.length,
+    projects: data.projects.filter((p) => p.status === "active").length,
+    tasks: data.tasks.filter((t) => t.status !== "done").length,
+    opportunities: data.opportunities.length,
   };
+  const openTasks = data.tasks.filter((t) => t.status !== "done");
 
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-5 sm:px-6">
       {/* Top bar */}
       <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className={cn("h-2.5 w-2.5 rounded-full animate-pulse-glow", STATUS_DOT[systemStatus])} />
+          <span className={cn("h-2.5 w-2.5 rounded-full animate-pulse-glow", STATUS_DOT[status])} />
           <div>
             <h1 className="text-xl font-semibold tracking-wide text-accent text-glow">
               NEXUS COMMAND CENTER
@@ -103,7 +103,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="hud-label hidden sm:inline">{STATUS_TEXT[systemStatus]}</span>
+          <span className="hud-label hidden sm:inline">{STATUS_TEXT[status]}</span>
           <Clock />
         </div>
       </header>
@@ -128,22 +128,26 @@ export default function Dashboard() {
           </Panel>
 
           <Panel title="Projects" icon={<Boxes size={14} />}>
-            <ul className="space-y-3">
-              {projects.map((p) => (
-                <li key={p.id}>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="truncate text-fg">{p.name}</span>
-                    <span className={cn("hud-label", priorityColor[p.priority])}>{p.priority}</span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface">
-                    <div
-                      className="h-full rounded-full bg-accent"
-                      style={{ width: `${p.progress}%` }}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {data.projects.length === 0 ? (
+              <p className="text-sm text-muted">No projects yet. Add one below.</p>
+            ) : (
+              <ul className="space-y-3">
+                {data.projects.map((p) => (
+                  <li key={p.id}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="truncate text-fg">{p.name}</span>
+                      <span className={cn("hud-label", priorityColor[p.priority])}>{p.priority}</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface">
+                      <div
+                        className="h-full rounded-full bg-accent"
+                        style={{ width: `${p.progress}%` }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
         </div>
 
@@ -158,15 +162,18 @@ export default function Dashboard() {
               <div className="hud-label">Engine</div>
               <div className="text-sm text-muted">Step 3</div>
             </div>
-            <div className="h-[360px] w-full sm:h-[420px]">
-              <CentralSphere status={systemStatus} />
+            <div className="h-[340px] w-full sm:h-[400px]">
+              <CentralSphere status={status} />
             </div>
             <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-center">
-              <div className="hud-label">{STATUS_TEXT[systemStatus]}</div>
+              <div className="hud-label">{STATUS_TEXT[status]}</div>
             </div>
           </section>
 
-          {/* Operating modes strip */}
+          <Panel title="Quick Add" icon={<PlusCircle size={14} />}>
+            <QuickAdd projects={data.projects} />
+          </Panel>
+
           <Panel title="Operating Modes" icon={<Cpu size={14} />}>
             <div className="flex flex-wrap gap-2">
               {operatingModes.map((m) => (
@@ -187,7 +194,6 @@ export default function Dashboard() {
             </div>
           </Panel>
 
-          {/* Command bar (engine arrives in Step 3) */}
           <section className="panel p-3">
             <div className="flex items-center gap-2">
               <input
@@ -208,56 +214,90 @@ export default function Dashboard() {
         {/* Right column */}
         <div className="flex flex-col gap-4 lg:col-span-3">
           <Panel title="Opportunities" icon={<Lightbulb size={14} />}>
-            <ul className="space-y-3">
-              {opportunities.map((o) => (
-                <li key={o.id} className="rounded-lg border border-line bg-surface/40 p-3">
-                  <div className="text-sm text-fg">{o.title}</div>
-                  <div className="mt-1 flex items-center justify-between">
-                    <span className={cn("hud-label", priorityColor[o.potential])}>
-                      {o.potential} potential
-                    </span>
-                    <span className="text-xs text-muted">{o.nextAction}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {data.opportunities.length === 0 ? (
+              <p className="text-sm text-muted">No opportunities tracked yet.</p>
+            ) : (
+              <ul className="space-y-3">
+                {data.opportunities.map((o) => (
+                  <li key={o.id} className="rounded-lg border border-line bg-surface/40 p-3">
+                    <div className="text-sm text-fg">{o.title}</div>
+                    <div className="mt-1 flex items-center justify-between">
+                      <span className={cn("hud-label", priorityColor[o.potential])}>
+                        {o.potential} potential
+                      </span>
+                      <span className="text-xs text-muted">{o.next_action}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
 
           <Panel title="Open Tasks" icon={<ListChecks size={14} />}>
-            <ul className="space-y-2">
-              {tasks.map((t) => (
-                <li key={t.id} className="flex items-center gap-2 text-sm">
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      t.status === "doing" ? "bg-accent" : "bg-muted",
+            {openTasks.length === 0 ? (
+              <p className="text-sm text-muted">No open tasks.</p>
+            ) : (
+              <ul className="space-y-2">
+                {openTasks.map((t) => (
+                  <li key={t.id} className="flex items-center gap-2 text-sm">
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 rounded-full",
+                        t.status === "doing" ? "bg-accent" : "bg-muted",
+                      )}
+                    />
+                    <span className="truncate text-fg">{t.title}</span>
+                    {t.project_id && (
+                      <span className="ml-auto shrink-0 text-xs text-muted">
+                        {projectName.get(t.project_id)}
+                      </span>
                     )}
-                  />
-                  <span className="truncate text-fg">{t.title}</span>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+
+          <Panel title="Decision Log" icon={<GitBranch size={14} />}>
+            {data.decisions.length === 0 ? (
+              <p className="text-sm text-muted">No decisions logged yet.</p>
+            ) : (
+              <ul className="space-y-3">
+                {data.decisions.slice(0, 4).map((d) => (
+                  <li key={d.id}>
+                    <div className="text-sm text-fg">{d.decision}</div>
+                    {d.rationale && (
+                      <div className="mt-0.5 text-xs text-muted">{d.rationale}</div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
         </div>
 
         {/* Activity feed */}
         <div className="lg:col-span-12">
           <Panel title="Activity Feed" icon={<Activity size={14} />}>
-            <ul className="space-y-2 font-mono text-xs">
-              {activity.map((e) => (
-                <li key={e.id} className="flex items-center gap-3">
-                  <span className="w-16 shrink-0 text-muted">[{e.time}]</span>
-                  <span className="text-accent">{e.kind}</span>
-                  <span className="text-fg">{e.message}</span>
-                </li>
-              ))}
-            </ul>
+            {data.events.length === 0 ? (
+              <p className="text-sm text-muted">No activity yet.</p>
+            ) : (
+              <ul className="space-y-2 font-mono text-xs">
+                {data.events.map((e) => (
+                  <li key={e.id} className="flex items-center gap-3">
+                    <span className="w-20 shrink-0 text-muted">[{formatTime(e.created_at)}]</span>
+                    <span className="w-16 shrink-0 text-accent">{e.type}</span>
+                    <span className="text-fg">{e.message}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
         </div>
       </div>
 
       <footer className="mt-6 text-center">
-        <span className="hud-label">Nexus v0.1 . Step 1 foundation . built fresh</span>
+        <span className="hud-label">Nexus v0.1 . Step 2 data backbone . Supabase connected</span>
       </footer>
     </div>
   );
