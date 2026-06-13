@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* Nexus Command Center theme tokens (dark neon, JARVIS style) */
+@theme {
+  --color-base: #080b1f;
+  --color-surface: #0e1430;
+  --color-surface-2: #131b3d;
+  --color-line: #1e2950;
+  --color-accent: #00d9ff;
+  --color-accent-2: #ff2bd6;
+  --color-warn: #ffab2e;
+  --color-danger: #ff3b5b;
+  --color-ok: #29e3b2;
+  --color-fg: #c9d6f5;
+  --color-muted: #66739c;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-base);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  /* subtle glow plus technical grid */
+  background-image:
+    radial-gradient(circle at 50% -10%, rgba(0, 217, 255, 0.1), transparent 45%),
+    radial-gradient(circle at 90% 110%, rgba(255, 43, 214, 0.07), transparent 40%),
+    linear-gradient(rgba(30, 41, 80, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 41, 80, 0.22) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    44px 44px,
+    44px 44px;
+}
+
+/* Reusable presentational utilities */
+.panel {
+  background: linear-gradient(180deg, rgba(19, 27, 61, 0.66), rgba(14, 20, 48, 0.66));
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+}
+
+.panel-hover:hover {
+  border-color: rgba(0, 217, 255, 0.4);
+  box-shadow: 0 0 24px rgba(0, 217, 255, 0.12);
+}
+
+.text-glow {
+  text-shadow: 0 0 12px currentColor;
+}
+
+.glow-cyan {
+  box-shadow:
+    0 0 26px rgba(0, 217, 255, 0.22),
+    inset 0 0 1px rgba(0, 217, 255, 0.45);
+}
+
+.hud-label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  color: var(--color-muted);
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
