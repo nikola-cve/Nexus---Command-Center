@@ -9,6 +9,7 @@ import {
   GitBranch,
   Lightbulb,
   ListChecks,
+  LogOut,
   PlusCircle,
   Send,
   ShieldCheck,
@@ -16,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { operatingModes } from "@/lib/modes";
 import type { DashboardData, SystemStatus } from "@/lib/db/types";
+import { signOut } from "@/app/login/actions";
 import QuickAdd from "./QuickAdd";
 
 const CentralSphere = dynamic(() => import("./CentralSphere"), {
@@ -105,6 +107,15 @@ export default function Dashboard({ data }: { data: DashboardData }) {
         <div className="flex items-center gap-4">
           <span className="hud-label hidden sm:inline">{STATUS_TEXT[status]}</span>
           <Clock />
+          <form action={signOut}>
+            <button
+              type="submit"
+              title="Sign out"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-line text-muted transition-colors hover:border-accent/50 hover:text-accent"
+            >
+              <LogOut size={14} />
+            </button>
+          </form>
         </div>
       </header>
 

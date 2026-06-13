@@ -1,4 +1,4 @@
-import { getServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type {
   ActivityEvent,
   DashboardData,
@@ -11,11 +11,11 @@ import type {
 /**
  * Fetch everything the Mission Control dashboard needs in parallel.
  * Returns null when Supabase is not configured yet, so the UI can show a
- * clear setup message instead of crashing.
+ * clear setup message instead of crashing. Runs as the signed-in user (RLS).
  */
 export async function getDashboardData(): Promise<DashboardData | null> {
   if (!isSupabaseConfigured) return null;
-  const sb = getServerClient();
+  const sb = await createSupabaseServerClient();
 
   const [projects, tasks, decisions, opportunities, events] = await Promise.all([
     sb.from("projects").select("*").order("created_at", { ascending: true }),
@@ -38,7 +38,7 @@ export async function createProject(input: {
   name: string;
   priority: Project["priority"];
 }): Promise<void> {
-  const sb = getServerClient();
+  const sb = await createSupabaseServerClient();
   const { error } = await sb.from("projects").insert({
     name: input.name,
     priority: input.priority,
@@ -51,7 +51,7 @@ export async function createTask(input: {
   title: string;
   projectId: string | null;
 }): Promise<void> {
-  const sb = getServerClient();
+  const sb = await createSupabaseServerClient();
   const { error } = await sb.from("tasks").insert({
     title: input.title,
     project_id: input.projectId,
@@ -64,7 +64,7 @@ export async function createDecision(input: {
   decision: string;
   projectId: string | null;
 }): Promise<void> {
-  const sb = getServerClient();
+  const sb = await createSupabaseServerClient();
   const { error } = await sb.from("decisions").insert({
     decision: input.decision,
     project_id: input.projectId,
@@ -74,6 +74,6 @@ export async function createDecision(input: {
 }
 
 async function logEvent(type: string, ref: string, message: string): Promise<void> {
-  const sb = getServerClient();
+  const sb = await createSupabaseServerClient();
   await sb.from("events").insert({ type, ref, message });
 }

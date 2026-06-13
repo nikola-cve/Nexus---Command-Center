@@ -8,9 +8,9 @@ export default function NotConfigured() {
       <h1 className="text-xl font-semibold text-accent text-glow">Database not connected</h1>
       <p className="mt-3 text-sm text-muted">
         Mission Control is built, but it needs the Supabase keys to load your data. Add{" "}
-        <span className="font-mono text-fg">SUPABASE_URL</span> and{" "}
-        <span className="font-mono text-fg">SUPABASE_SERVICE_ROLE_KEY</span> to the environment, then
-        redeploy.
+        <span className="font-mono text-fg">NEXT_PUBLIC_SUPABASE_URL</span> and{" "}
+        <span className="font-mono text-fg">NEXT_PUBLIC_SUPABASE_ANON_KEY</span> to the environment,
+        then redeploy.
       </p>
     </div>
   );
