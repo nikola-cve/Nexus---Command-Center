@@ -2,6 +2,14 @@
 
 All notable changes to Nexus Command Center, newest first.
 
+## Step 2.8: UI restructure (navigation and sections)
+- Left navigation with separate sections: Overview, Projects, Tasks, Decisions, Opportunities,
+  Research, Plan. Each section has its own accent color.
+- New Plan and Progress screen shows the roadmap, phases, and overall progress inside the app.
+- Overview slimmed (stats, particle core, operating modes, activity).
+- Research is now a real section (add, list, delete, clickable source links).
+- Per-section add bars with toasts; shared Panel component; mobile-friendly nav.
+
 ## Step 2.7: Usability pass
 - Tasks are now actionable: cycle status (todo, doing, done) and delete.
 - Projects: change priority and status inline, and delete.

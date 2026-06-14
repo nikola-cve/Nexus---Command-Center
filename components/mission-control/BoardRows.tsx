@@ -4,15 +4,17 @@ import { useTransition } from "react";
 import { CheckCircle2, Circle, CircleDot, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  deleteDecisionAction,
   deleteOpportunityAction,
   deleteProjectAction,
+  deleteResearchAction,
   deleteTaskAction,
   toggleTaskStatusAction,
   updateProjectMetaAction,
   type ActionResult,
 } from "@/app/actions";
 import { cn } from "@/lib/utils";
-import type { Opportunity, Project, Task } from "@/lib/db/types";
+import type { Decision, Opportunity, Project, Research, Task } from "@/lib/db/types";
 
 const priorityColor: Record<string, string> = {
   high: "text-danger",
@@ -146,6 +148,59 @@ export function OpportunityRow({ opportunity }: { opportunity: Opportunity }) {
         {opportunity.next_action && (
           <span className="text-xs text-muted">{opportunity.next_action}</span>
         )}
+      </div>
+    </li>
+  );
+}
+
+export function DecisionRow({ decision }: { decision: Decision }) {
+  const [pending, run] = useAction();
+  return (
+    <li className="group">
+      <div className="flex items-start gap-2">
+        <span className="flex-1 text-sm text-fg">{decision.decision}</span>
+        <button
+          title="Delete decision"
+          disabled={pending}
+          onClick={() => run(() => deleteDecisionAction(decision.id), "Decision deleted")}
+          className={cn(iconBtn, "opacity-70 hover:text-danger sm:opacity-0 sm:group-hover:opacity-100")}
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+      {decision.rationale && <div className="mt-0.5 text-xs text-muted">{decision.rationale}</div>}
+    </li>
+  );
+}
+
+export function ResearchRow({ research }: { research: Research }) {
+  const [pending, run] = useAction();
+  return (
+    <li className="group rounded-lg border border-line bg-surface/40 p-3">
+      <div className="flex items-start gap-2">
+        <div className="flex-1">
+          {research.source_url ? (
+            <a
+              href={research.source_url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-info hover:underline"
+            >
+              {research.title}
+            </a>
+          ) : (
+            <span className="text-sm text-fg">{research.title}</span>
+          )}
+          {research.summary && <div className="mt-0.5 text-xs text-muted">{research.summary}</div>}
+        </div>
+        <button
+          title="Delete research"
+          disabled={pending}
+          onClick={() => run(() => deleteResearchAction(research.id), "Research deleted")}
+          className={cn(iconBtn, "opacity-70 hover:text-danger sm:opacity-0 sm:group-hover:opacity-100")}
+        >
+          <Trash2 size={13} />
+        </button>
       </div>
     </li>
   );

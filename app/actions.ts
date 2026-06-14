@@ -5,9 +5,12 @@ import {
   createDecision,
   createOpportunity,
   createProject,
+  createResearch,
   createTask,
+  deleteDecision,
   deleteOpportunity,
   deleteProject,
+  deleteResearch,
   deleteTask,
   toggleTaskStatus,
   updateProjectMeta,
@@ -26,7 +29,7 @@ export async function createProjectAction(formData: FormData): Promise<ActionRes
     if (!name) return { ok: false, error: "Name is required" };
     const priority = String(formData.get("priority") ?? "medium") as Project["priority"];
     await createProject({ name, priority });
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -39,7 +42,7 @@ export async function createTaskAction(formData: FormData): Promise<ActionResult
     if (!title) return { ok: false, error: "Title is required" };
     const projectId = String(formData.get("projectId") ?? "") || null;
     await createTask({ title, projectId });
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -53,7 +56,7 @@ export async function createOpportunityAction(formData: FormData): Promise<Actio
     const potential = String(formData.get("potential") ?? "medium") as Opportunity["potential"];
     const nextAction = String(formData.get("nextAction") ?? "").trim() || null;
     await createOpportunity({ title, potential, nextAction });
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -66,7 +69,7 @@ export async function createDecisionAction(formData: FormData): Promise<ActionRe
     if (!decision) return { ok: false, error: "Decision is required" };
     const projectId = String(formData.get("projectId") ?? "") || null;
     await createDecision({ decision, projectId });
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -79,7 +82,7 @@ export async function toggleTaskStatusAction(
 ): Promise<ActionResult> {
   try {
     await toggleTaskStatus(id, current);
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -89,7 +92,7 @@ export async function toggleTaskStatusAction(
 export async function deleteTaskAction(id: string): Promise<ActionResult> {
   try {
     await deleteTask(id);
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -99,7 +102,7 @@ export async function deleteTaskAction(id: string): Promise<ActionResult> {
 export async function deleteProjectAction(id: string): Promise<ActionResult> {
   try {
     await deleteProject(id);
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -112,7 +115,7 @@ export async function updateProjectMetaAction(
 ): Promise<ActionResult> {
   try {
     await updateProjectMeta(id, patch);
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);
@@ -122,7 +125,41 @@ export async function updateProjectMetaAction(
 export async function deleteOpportunityAction(id: string): Promise<ActionResult> {
   try {
     await deleteOpportunity(id);
-    revalidatePath("/mission-control");
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createResearchAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const title = String(formData.get("title") ?? "").trim();
+    if (!title) return { ok: false, error: "Title is required" };
+    const sourceUrl = String(formData.get("sourceUrl") ?? "").trim() || null;
+    const summary = String(formData.get("summary") ?? "").trim() || null;
+    await createResearch({ title, sourceUrl, summary });
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteResearchAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteResearch(id);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteDecisionAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteDecision(id);
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
     return fail(e);

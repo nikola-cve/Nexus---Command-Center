@@ -43,6 +43,16 @@ export type Opportunity = {
   created_at: string;
 };
 
+export type Research = {
+  id: string;
+  project_id: string | null;
+  title: string;
+  source_url: string | null;
+  summary: string | null;
+  tags: string[] | null;
+  created_at: string;
+};
+
 export type ActivityEvent = {
   id: string;
   type: string;
@@ -56,5 +66,6 @@ export type DashboardData = {
   tasks: Task[];
   decisions: Decision[];
   opportunities: Opportunity[];
+  research: Research[];
   events: ActivityEvent[];
 };

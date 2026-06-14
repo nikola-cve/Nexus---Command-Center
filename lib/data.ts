@@ -5,6 +5,7 @@ import type {
   Decision,
   Opportunity,
   Project,
+  Research,
   Task,
 } from "@/lib/db/types";
 
@@ -17,11 +18,12 @@ export async function getDashboardData(): Promise<DashboardData | null> {
   if (!isSupabaseConfigured) return null;
   const sb = await createSupabaseServerClient();
 
-  const [projects, tasks, decisions, opportunities, events] = await Promise.all([
+  const [projects, tasks, decisions, opportunities, research, events] = await Promise.all([
     sb.from("projects").select("*").order("created_at", { ascending: true }),
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
     sb.from("decisions").select("*").order("created_at", { ascending: false }),
     sb.from("opportunities").select("*").order("created_at", { ascending: false }),
+    sb.from("research").select("*").order("created_at", { ascending: false }),
     sb.from("events").select("*").order("created_at", { ascending: false }).limit(12),
   ]);
 
@@ -30,6 +32,7 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     tasks: (tasks.data ?? []) as Task[],
     decisions: (decisions.data ?? []) as Decision[],
     opportunities: (opportunities.data ?? []) as Opportunity[],
+    research: (research.data ?? []) as Research[],
     events: (events.data ?? []) as ActivityEvent[],
   };
 }
@@ -122,6 +125,33 @@ export async function createOpportunity(input: {
 export async function deleteOpportunity(id: string): Promise<void> {
   const sb = await createSupabaseServerClient();
   const { error } = await sb.from("opportunities").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function createResearch(input: {
+  title: string;
+  sourceUrl: string | null;
+  summary: string | null;
+}): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("research").insert({
+    title: input.title,
+    source_url: input.sourceUrl,
+    summary: input.summary,
+  });
+  if (error) throw new Error(error.message);
+  await logEvent("task", "research", `Research saved: ${input.title}`);
+}
+
+export async function deleteResearch(id: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("research").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteDecision(id: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("decisions").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
 
