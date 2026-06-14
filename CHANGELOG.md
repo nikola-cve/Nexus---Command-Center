@@ -2,6 +2,12 @@
 
 All notable changes to Nexus Command Center, newest first.
 
+## Step 3.1: Design pass
+- Removed the decorative particle sphere. Overview now shows useful content: Priority projects,
+  In progress tasks, Quick capture, Agents, and Activity.
+- Quieter background (dropped the busy grid and the magenta glow cliche), higher-contrast text for
+  readability, cleaner spacing and typography.
+
 ## Step 3.0: Configurable agents
 - Agents are now real, editable records in the database (the 7 operating modes seeded with real
   roles and system prompts), not static chips.

@@ -13,8 +13,8 @@
   --color-ok: #29e3b2;
   --color-info: #38bdf8;
   --color-plan: #a78bfa;
-  --color-fg: #c9d6f5;
-  --color-muted: #66739c;
+  --color-fg: #d7e0f5;
+  --color-muted: #8b97bd;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
@@ -29,17 +29,9 @@ body {
   background-color: var(--color-base);
   color: var(--color-fg);
   font-family: var(--font-sans);
-  /* subtle glow plus technical grid */
-  background-image:
-    radial-gradient(circle at 50% -10%, rgba(0, 217, 255, 0.1), transparent 45%),
-    radial-gradient(circle at 90% 110%, rgba(255, 43, 214, 0.07), transparent 40%),
-    linear-gradient(rgba(30, 41, 80, 0.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30, 41, 80, 0.22) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    100% 100%,
-    44px 44px,
-    44px 44px;
+  /* one quiet glow at the top, no busy grid */
+  background-image: radial-gradient(circle at 50% -15%, rgba(0, 217, 255, 0.07), transparent 50%);
+  background-attachment: fixed;
 }
 
 /* Reusable presentational utilities */

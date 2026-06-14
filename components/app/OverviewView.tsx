@@ -1,31 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { Activity, Cpu, Send } from "lucide-react";
 import Link from "next/link";
+import { Activity, Bot, Boxes, ListChecks, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Panel } from "@/components/ui/Panel";
+import AddBar from "@/components/app/AddBar";
 import { fmtTime, nowClock } from "@/lib/format";
 import { agentColor } from "@/lib/agent-color";
-import type { DashboardData, SystemStatus } from "@/lib/db/types";
+import type { DashboardData } from "@/lib/db/types";
 
-const CentralSphere = dynamic(() => import("@/components/mission-control/CentralSphere"), {
-  ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse-glow" />,
-});
-
-const STATUS_TEXT: Record<SystemStatus, string> = {
-  healthy: "ALL SYSTEMS NOMINAL",
-  warning: "ATTENTION REQUIRED",
-  error: "FAULT DETECTED",
-};
-
-const STATUS_DOT: Record<SystemStatus, string> = {
-  healthy: "bg-ok",
-  warning: "bg-warn",
-  error: "bg-danger",
-};
+const priorityRank: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 function Clock() {
   const [now, setNow] = useState<string | null>(null);
@@ -39,7 +24,6 @@ function Clock() {
 }
 
 export default function OverviewView({ data }: { data: DashboardData }) {
-  const status: SystemStatus = "healthy";
   const stats = [
     { label: "Projects", value: data.projects.filter((p) => p.status === "active").length, color: "text-accent" },
     { label: "Open Tasks", value: data.tasks.filter((t) => t.status !== "done").length, color: "text-ok" },
@@ -47,50 +31,94 @@ export default function OverviewView({ data }: { data: DashboardData }) {
     { label: "Decisions", value: data.decisions.length, color: "text-accent-2" },
   ];
 
+  const priorityProjects = [...data.projects]
+    .filter((p) => p.status === "active")
+    .sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority])
+    .slice(0, 4);
+
+  const inProgress = data.tasks.filter((t) => t.status === "doing").slice(0, 6);
+  const projectName = new Map(data.projects.map((p) => [p.id, p.name]));
+
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-4 py-5 sm:px-6">
-      <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className={cn("h-2.5 w-2.5 rounded-full animate-pulse-glow", STATUS_DOT[status])} />
-          <div>
-            <h1 className="text-xl font-semibold tracking-wide text-accent text-glow">Overview</h1>
-            <p className="hud-label">Personal Operating Center</p>
-          </div>
+    <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-fg">Overview</h1>
+          <p className="hud-label mt-0.5">Personal Operating Center</p>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="hud-label hidden sm:inline">{STATUS_TEXT[status]}</span>
-          <Clock />
-        </div>
+        <Clock />
       </header>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="panel p-4 text-center">
-            <div className={cn("text-2xl font-semibold", s.color)}>{s.value}</div>
+          <div key={s.label} className="panel p-4">
+            <div className={cn("text-3xl font-semibold tabular-nums", s.color)}>{s.value}</div>
             <div className="hud-label mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
-      <section className="panel relative mt-4 overflow-hidden">
-        <div className="absolute left-4 top-4 z-10">
-          <div className="hud-label">Core</div>
-          <div className="text-sm text-accent text-glow">JARVIS</div>
-        </div>
-        <div className="absolute right-4 top-4 z-10 text-right">
-          <div className="hud-label">Engine</div>
-          <div className="text-sm text-muted">Step 3</div>
-        </div>
-        <div className="h-[280px] w-full sm:h-[320px]">
-          <CentralSphere status={status} />
-        </div>
-        <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-center">
-          <div className="hud-label">{STATUS_TEXT[status]}</div>
-        </div>
-      </section>
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel title="Priority projects" icon={<Boxes size={14} />}>
+          {priorityProjects.length === 0 ? (
+            <p className="text-sm text-muted">No active projects.</p>
+          ) : (
+            <ul className="space-y-3">
+              {priorityProjects.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/projects/${p.id}`}
+                    className="flex items-center justify-between text-sm text-fg hover:text-accent"
+                  >
+                    <span className="truncate">{p.name}</span>
+                    <span className="ml-2 shrink-0 font-mono text-xs text-muted">{p.progress}%</span>
+                  </Link>
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface">
+                    <div className="h-full rounded-full bg-accent" style={{ width: `${p.progress}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="In progress" icon={<Target size={14} />}>
+          {inProgress.length === 0 ? (
+            <p className="text-sm text-muted">Nothing in progress. Pick a task to start.</p>
+          ) : (
+            <ul className="space-y-2">
+              {inProgress.map((t) => (
+                <li key={t.id} className="flex items-center gap-2 text-sm">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                  <Link href={`/tasks/${t.id}`} className="flex-1 truncate text-fg hover:text-accent">
+                    {t.title}
+                  </Link>
+                  {t.project_id && (
+                    <span className="shrink-0 text-xs text-muted">{projectName.get(t.project_id)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
 
       <div className="mt-4">
-        <Panel title="Agents" icon={<Cpu size={14} />}>
+        <Panel title="Quick capture" icon={<ListChecks size={14} />}>
+          <AddBar kind="task" projects={data.projects} />
+        </Panel>
+      </div>
+
+      <div className="mt-4">
+        <Panel
+          title="Agents"
+          icon={<Bot size={14} />}
+          action={
+            <Link href="/agents" className="hud-label text-accent hover:underline">
+              manage
+            </Link>
+          }
+        >
           <div className="flex flex-wrap gap-2">
             {data.agents
               .filter((a) => a.enabled)
@@ -107,35 +135,21 @@ export default function OverviewView({ data }: { data: DashboardData }) {
                 </Link>
               ))}
           </div>
+          <p className="mt-3 text-xs text-muted">
+            Chat and dispatch to agents arrives with the Claude engine (Step 3).
+          </p>
         </Panel>
       </div>
 
-      <section className="panel mt-4 p-3">
-        <div className="flex items-center gap-2">
-          <input
-            disabled
-            placeholder="Command bar activates in Step 3 (Claude engine)"
-            className="h-10 flex-1 rounded-md border border-line bg-surface/50 px-3 text-sm text-fg placeholder:text-muted focus:outline-none disabled:cursor-not-allowed"
-          />
-          <button
-            disabled
-            className="flex h-10 items-center gap-2 rounded-md border border-line px-4 text-sm text-muted disabled:cursor-not-allowed"
-          >
-            <Send size={14} /> Run
-          </button>
-        </div>
-      </section>
-
       <div className="mt-4">
-        <Panel title="Activity Feed" icon={<Activity size={14} />}>
+        <Panel title="Activity" icon={<Activity size={14} />}>
           {data.events.length === 0 ? (
             <p className="text-sm text-muted">No activity yet.</p>
           ) : (
             <ul className="space-y-2 font-mono text-xs">
               {data.events.map((e) => (
                 <li key={e.id} className="flex items-center gap-3">
-                  <span className="w-20 shrink-0 text-muted">[{fmtTime(e.created_at)}]</span>
-                  <span className="w-16 shrink-0 text-accent">{e.type}</span>
+                  <span className="w-16 shrink-0 text-muted">{fmtTime(e.created_at)}</span>
                   <span className="text-fg">{e.message}</span>
                 </li>
               ))}
