@@ -2,6 +2,17 @@
 
 All notable changes to Nexus Command Center, newest first.
 
+## Step 3.0: Configurable agents
+- Agents are now real, editable records in the database (the 7 operating modes seeded with real
+  roles and system prompts), not static chips.
+- New Agents section: list of agents, and an editable detail page (name, role, system prompt, color,
+  enabled, delete). Create new agents too.
+- These system prompts are what the Claude engine will use next.
+- Overview now shows agents from the database, each linking to its editor.
+- Note: the design skills the owner shared (impeccable, taste-skill) could not run in this sandbox
+  (skill download returned HTTP 403; the impeccable detector needs a headless browser that cannot run
+  as root here). Their published principles are being applied manually in the design pass.
+
 ## Step 2.9: Detail pages and history (traces)
 - Project, task, and decision names are now clickable and open a detail page.
 - Project detail shows its tasks, decisions, research, an editable description, progress, and a

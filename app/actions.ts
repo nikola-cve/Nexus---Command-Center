@@ -2,17 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  createAgent,
   createDecision,
   createOpportunity,
   createProject,
   createResearch,
   createTask,
+  deleteAgent,
   deleteDecision,
   deleteOpportunity,
   deleteProject,
   deleteResearch,
   deleteTask,
   toggleTaskStatus,
+  updateAgent,
   updateProjectMeta,
   updateProjectNotes,
   updateTaskNotes,
@@ -181,6 +184,42 @@ export async function updateProjectNotesAction(id: string, notes: string): Promi
 export async function updateTaskNotesAction(id: string, notes: string): Promise<ActionResult> {
   try {
     await updateTaskNotes(id, notes);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createAgentAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const name = String(formData.get("name") ?? "").trim();
+    if (!name) return { ok: false, error: "Name is required" };
+    const role = String(formData.get("role") ?? "").trim() || "Custom agent";
+    await createAgent({ name, role });
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateAgentAction(
+  id: string,
+  patch: { name?: string; role?: string; system_prompt?: string; color?: string; enabled?: boolean },
+): Promise<ActionResult> {
+  try {
+    await updateAgent(id, patch);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteAgentAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteAgent(id);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {

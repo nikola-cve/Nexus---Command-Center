@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Activity, Cpu, Send } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Panel } from "@/components/ui/Panel";
-import { operatingModes } from "@/lib/modes";
 import { fmtTime, nowClock } from "@/lib/format";
+import { agentColor } from "@/lib/agent-color";
 import type { DashboardData, SystemStatus } from "@/lib/db/types";
 
 const CentralSphere = dynamic(() => import("@/components/mission-control/CentralSphere"), {
@@ -89,23 +90,22 @@ export default function OverviewView({ data }: { data: DashboardData }) {
       </section>
 
       <div className="mt-4">
-        <Panel title="Operating Modes" icon={<Cpu size={14} />}>
+        <Panel title="Agents" icon={<Cpu size={14} />}>
           <div className="flex flex-wrap gap-2">
-            {operatingModes.map((m) => (
-              <span
-                key={m.key}
-                className={cn(
-                  "rounded-md border px-2.5 py-1 text-xs font-medium",
-                  m.state === "active"
-                    ? "border-accent/50 text-accent glow-cyan"
-                    : m.state === "standby"
-                      ? "border-line text-fg"
-                      : "border-line text-muted",
-                )}
-              >
-                {m.label}
-              </span>
-            ))}
+            {data.agents
+              .filter((a) => a.enabled)
+              .map((a) => (
+                <Link
+                  key={a.id}
+                  href={`/agents/${a.id}`}
+                  className={cn(
+                    "rounded-md border border-line px-2.5 py-1 text-xs font-medium transition-colors hover:border-accent/50",
+                    agentColor(a.color),
+                  )}
+                >
+                  {a.name}
+                </Link>
+              ))}
           </div>
         </Panel>
       </div>

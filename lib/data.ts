@@ -1,6 +1,7 @@
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type {
   ActivityEvent,
+  Agent,
   DashboardData,
   Decision,
   Opportunity,
@@ -29,12 +30,13 @@ export async function getDashboardData(): Promise<DashboardData | null> {
   if (!isSupabaseConfigured) return null;
   const sb = await createSupabaseServerClient();
 
-  const [projects, tasks, decisions, opportunities, research, events] = await Promise.all([
+  const [projects, tasks, decisions, opportunities, research, agents, events] = await Promise.all([
     sb.from("projects").select("*").order("created_at", { ascending: true }),
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
     sb.from("decisions").select("*").order("created_at", { ascending: false }),
     sb.from("opportunities").select("*").order("created_at", { ascending: false }),
     sb.from("research").select("*").order("created_at", { ascending: false }),
+    sb.from("agents").select("*").order("sort", { ascending: true }),
     sb.from("events").select("*").order("created_at", { ascending: false }).limit(12),
   ]);
 
@@ -44,8 +46,60 @@ export async function getDashboardData(): Promise<DashboardData | null> {
     decisions: (decisions.data ?? []) as Decision[],
     opportunities: (opportunities.data ?? []) as Opportunity[],
     research: (research.data ?? []) as Research[],
+    agents: (agents.data ?? []) as Agent[],
     events: (events.data ?? []) as ActivityEvent[],
   };
+}
+
+export async function getAgents(): Promise<Agent[]> {
+  if (!isSupabaseConfigured) return [];
+  const sb = await createSupabaseServerClient();
+  const { data } = await sb.from("agents").select("*").order("sort", { ascending: true });
+  return (data ?? []) as Agent[];
+}
+
+export async function getAgentDetail(id: string): Promise<Agent | null> {
+  if (!isSupabaseConfigured) return null;
+  const sb = await createSupabaseServerClient();
+  const { data } = await sb.from("agents").select("*").eq("id", id).maybeSingle();
+  return (data ?? null) as Agent | null;
+}
+
+export async function createAgent(input: { name: string; role: string }): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { data: maxRow } = await sb
+    .from("agents")
+    .select("sort")
+    .order("sort", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort = ((maxRow?.sort as number) ?? 0) + 1;
+  const { data, error } = await sb
+    .from("agents")
+    .insert({ name: input.name, role: input.role, system_prompt: "You are a helpful agent.", sort })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  if (data) await logEvent("agent", data.id, "Agent created");
+}
+
+export async function updateAgent(
+  id: string,
+  patch: { name?: string; role?: string; system_prompt?: string; color?: string; enabled?: boolean },
+): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb
+    .from("agents")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  await logEvent("agent", id, "Agent updated");
+}
+
+export async function deleteAgent(id: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("agents").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function getProjectDetail(id: string): Promise<ProjectDetail | null> {

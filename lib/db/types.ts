@@ -61,11 +61,25 @@ export type ActivityEvent = {
   created_at: string;
 };
 
+export type Agent = {
+  id: string;
+  key: string | null;
+  name: string;
+  role: string;
+  system_prompt: string;
+  color: string;
+  enabled: boolean;
+  sort: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type DashboardData = {
   projects: Project[];
   tasks: Task[];
   decisions: Decision[];
   opportunities: Opportunity[];
   research: Research[];
+  agents: Agent[];
   events: ActivityEvent[];
 };

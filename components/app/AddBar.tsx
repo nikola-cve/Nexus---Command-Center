@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
+  createAgentAction,
   createDecisionAction,
   createOpportunityAction,
   createProjectAction,
@@ -13,7 +14,7 @@ import {
 } from "@/app/actions";
 import type { Project } from "@/lib/db/types";
 
-type Kind = "project" | "task" | "opportunity" | "decision" | "research";
+type Kind = "project" | "task" | "opportunity" | "decision" | "research" | "agent";
 
 const input =
   "h-9 min-w-[150px] flex-1 rounded-md border border-line bg-surface/50 px-3 text-sm text-fg placeholder:text-muted focus:border-accent/50 focus:outline-none";
@@ -28,6 +29,7 @@ const config: Record<
   opportunity: { action: createOpportunityAction, success: "Opportunity added" },
   decision: { action: createDecisionAction, success: "Decision logged" },
   research: { action: createResearchAction, success: "Research saved" },
+  agent: { action: createAgentAction, success: "Agent created" },
 };
 
 /** A single add form for one entity type, wired to its server action with toasts. */
@@ -108,6 +110,13 @@ export default function AddBar({ kind, projects = [] }: { kind: Kind; projects?:
           <input name="title" required placeholder="Title" className={input} />
           <input name="sourceUrl" placeholder="Source URL (optional)" className={input} />
           <input name="summary" placeholder="Summary (optional)" className={input} />
+        </>
+      )}
+
+      {kind === "agent" && (
+        <>
+          <input name="name" required placeholder="Agent name" className={input} />
+          <input name="role" placeholder="Role (what it focuses on)" className={input} />
         </>
       )}
 
