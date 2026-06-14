@@ -2,6 +2,12 @@
 
 All notable changes to Nexus Command Center, newest first.
 
+## Step D1: Design system (calm premium, Linear/Mercury direction)
+- New token palette: near-black surfaces, one indigo accent, neutral grays, higher contrast.
+- Killed the neon glow, busy grid, and loud all-caps HUD styling; restrained captions.
+- Linear-style sidebar (neutral items, single accent for active, clean brand mark).
+- Neutral, tabular KPI numbers; refined card and focus styles.
+
 ## Step 3.1: Design pass
 - Removed the decorative particle sphere. Overview now shows useful content: Priority projects,
   In progress tasks, Quick capture, Agents, and Activity.

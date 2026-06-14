@@ -10,38 +10,40 @@ import { cn } from "@/lib/utils";
 export default function SideNav() {
   const path = usePathname();
   return (
-    <nav className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-line bg-surface/30 p-2 lg:sticky lg:top-0 lg:h-screen lg:w-56 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:border-b-0 lg:border-r">
-      <div className="mr-2 hidden px-2 py-3 lg:block">
-        <div className="text-lg font-semibold tracking-wide text-accent text-glow">NEXUS</div>
-        <div className="hud-label">Command Center</div>
+    <nav className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-line bg-base/80 p-2 backdrop-blur lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:flex-col lg:items-stretch lg:gap-0.5 lg:overflow-y-auto lg:border-b-0 lg:border-r lg:p-3">
+      <div className="mr-3 hidden items-center gap-2 px-2 py-2 lg:flex">
+        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-accent text-xs font-bold text-white">
+          N
+        </span>
+        <span className="text-[15px] font-semibold tracking-tight text-fg">Nexus</span>
       </div>
 
       {sections.map((s) => {
-        const active = path === s.href;
+        const active = path === s.href || (s.href !== "/mission-control" && path.startsWith(s.href));
         const Icon = s.icon;
         return (
           <Link
             key={s.key}
             href={s.href}
             className={cn(
-              "flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors",
+              "flex items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? cn("bg-surface/70 lg:border-l-2", s.text, s.border)
-                : "border-transparent text-muted hover:bg-surface/40 hover:text-fg lg:border-l-2",
+                ? "bg-surface text-fg"
+                : "text-muted hover:bg-surface/60 hover:text-fg",
             )}
           >
-            <Icon size={16} className={active ? s.text : ""} />
+            <Icon size={17} className={active ? "text-accent" : "text-muted"} />
             {s.label}
           </Link>
         );
       })}
 
-      <form action={signOut} className="lg:mt-auto">
+      <form action={signOut} className="lg:mt-auto lg:pt-2">
         <button
           type="submit"
-          className="flex w-full items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm text-muted transition-colors hover:bg-surface/40 hover:text-danger"
+          className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-surface/60 hover:text-danger"
         >
-          <LogOut size={16} /> Sign out
+          <LogOut size={17} /> Sign out
         </button>
       </form>
     </nav>
