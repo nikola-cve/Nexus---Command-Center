@@ -357,6 +357,12 @@ export async function deleteDecision(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export async function createHandoff(scope: string, content: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("handoffs").insert({ scope, content });
+  if (error) throw new Error(error.message);
+}
+
 async function logEvent(type: string, ref: string, message: string): Promise<void> {
   const sb = await createSupabaseServerClient();
   await sb.from("events").insert({ type, ref, message });

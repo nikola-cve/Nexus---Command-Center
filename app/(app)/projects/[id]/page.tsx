@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, GitBranch, ListChecks, Notebook } from "lucide-react";
 import { updateProjectNotesAction } from "@/app/actions";
 import { HistoryList } from "@/components/app/HistoryList";
+import HandoffButton from "@/components/app/HandoffButton";
 import NotesEditor from "@/components/app/NotesEditor";
 import { DecisionRow, ResearchRow, TaskRow } from "@/components/mission-control/BoardRows";
 import NotConfigured from "@/components/mission-control/NotConfigured";
@@ -36,9 +37,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <header className="mb-5">
-        <h1 className="text-2xl font-semibold tracking-wide text-accent text-glow">
-          {project.name}
-        </h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h1 className="text-2xl font-semibold tracking-tight text-fg">{project.name}</h1>
+          <HandoffButton project={project} tasks={tasks} decisions={decisions} />
+        </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded border border-line px-2 py-0.5 text-muted">{project.status}</span>
           <span className={cn("rounded border border-line px-2 py-0.5", priorityColor[project.priority])}>

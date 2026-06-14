@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   createAgent,
   createDecision,
+  createHandoff,
   createOpportunity,
   createProject,
   createResearch,
@@ -220,6 +221,16 @@ export async function updateAgentAction(
 export async function deleteAgentAction(id: string): Promise<ActionResult> {
   try {
     await deleteAgent(id);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function saveHandoffAction(scope: string, content: string): Promise<ActionResult> {
+  try {
+    await createHandoff(scope, content);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
