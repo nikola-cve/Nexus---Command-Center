@@ -12,10 +12,10 @@ export default function Home() {
         Claude on call as the execution backend.
       </p>
       <Link
-        href="/mission-control"
-        className="glow-cyan mt-9 rounded-md border border-accent/50 px-6 py-3 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
+        href="/bridge"
+        className="mt-9 rounded-md border border-accent/50 px-6 py-3 text-sm font-medium text-accent transition-colors hover:bg-accent/10"
       >
-        Launch Mission Control
+        Enter the Bridge
       </Link>
     </main>
   );

@@ -132,6 +132,67 @@ h1 {
   outline-offset: 1px;
 }
 
+/* ---- Operating system shell (the Bridge) ---- */
+
+/* Monospace telemetry text: logs, ids, counts, status strip */
+.telemetry {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Nested inset surface inside a glass panel (no blur, slightly darker) */
+.glass-inset {
+  background: rgba(7, 6, 13, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+/* Thin, quiet scrollbars for the dense panels */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* A status node on the Bridge map: a glowing dot whose color carries state */
+.node-dot {
+  border-radius: 9999px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent),
+    0 0 14px 1px color-mix(in srgb, currentColor 55%, transparent);
+}
+.node-pulse {
+  animation: nodePulse 2.4s ease-in-out infinite;
+}
+@keyframes nodePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent),
+      0 0 10px 1px color-mix(in srgb, currentColor 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 10%, transparent),
+      0 0 20px 3px color-mix(in srgb, currentColor 70%, transparent);
+  }
+}
+
+/* Orbit ring guide around a department core */
+.orbit-ring {
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+}
+
 /* Rendered markdown (documents: product map, design, PRD) */
 .prose-doc {
   color: var(--color-fg);

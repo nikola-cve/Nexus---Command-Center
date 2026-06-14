@@ -25,7 +25,7 @@ export async function signIn(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/mission-control");
+  redirect("/bridge");
 }
 
 export async function signOut() {

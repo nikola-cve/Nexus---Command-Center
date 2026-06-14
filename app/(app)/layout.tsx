@@ -1,12 +1,18 @@
-import SideNav from "@/components/app/SideNav";
-import CommandPalette from "@/components/app/CommandPalette";
+import AppShell, { type ShellData } from "@/components/shell/AppShell";
+import { getDashboardData, getOrgTree } from "@/lib/data";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-full flex-col lg:flex-row">
-      <SideNav />
-      <main className="min-w-0 flex-1">{children}</main>
-      <CommandPalette />
-    </div>
-  );
+export const dynamic = "force-dynamic";
+
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const [org, dash] = await Promise.all([getOrgTree(), getDashboardData()]);
+
+  const data: ShellData = {
+    departments: org.departments,
+    projects: dash?.projects ?? [],
+    tasks: dash?.tasks ?? [],
+    agents: dash?.agents ?? [],
+    events: dash?.events ?? [],
+  };
+
+  return <AppShell data={data}>{children}</AppShell>;
 }
