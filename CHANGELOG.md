@@ -2,6 +2,15 @@
 
 All notable changes to Nexus Command Center, newest first.
 
+## Step 2.9: Detail pages and history (traces)
+- Project, task, and decision names are now clickable and open a detail page.
+- Project detail shows its tasks, decisions, research, an editable description, progress, and a
+  history of everything under it.
+- Task detail shows status, project link, editable notes, and history. Decision detail shows
+  rationale, project link, and history.
+- Every create and change is now recorded against the item id, building a history trace per item.
+- Clock and timestamps switched to Belgrade time.
+
 ## Step 2.8: UI restructure (navigation and sections)
 - Left navigation with separate sections: Overview, Projects, Tasks, Decisions, Opportunities,
   Research, Plan. Each section has its own accent color.

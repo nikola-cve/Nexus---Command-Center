@@ -6,6 +6,7 @@ import { Activity, Cpu, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Panel } from "@/components/ui/Panel";
 import { operatingModes } from "@/lib/modes";
+import { fmtTime, nowClock } from "@/lib/format";
 import type { DashboardData, SystemStatus } from "@/lib/db/types";
 
 const CentralSphere = dynamic(() => import("@/components/mission-control/CentralSphere"), {
@@ -28,17 +29,12 @@ const STATUS_DOT: Record<SystemStatus, string> = {
 function Clock() {
   const [now, setNow] = useState<string | null>(null);
   useEffect(() => {
-    const tick = () =>
-      setNow(new Date().toLocaleTimeString("en-GB", { hour12: false, timeZone: "UTC" }) + " UTC");
+    const tick = () => setNow(nowClock());
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
   return <span className="font-mono text-sm text-accent tabular-nums">{now ?? "--:--:--"}</span>;
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-GB", { hour12: false, timeZone: "UTC" });
 }
 
 export default function OverviewView({ data }: { data: DashboardData }) {
@@ -138,7 +134,7 @@ export default function OverviewView({ data }: { data: DashboardData }) {
             <ul className="space-y-2 font-mono text-xs">
               {data.events.map((e) => (
                 <li key={e.id} className="flex items-center gap-3">
-                  <span className="w-20 shrink-0 text-muted">[{formatTime(e.created_at)}]</span>
+                  <span className="w-20 shrink-0 text-muted">[{fmtTime(e.created_at)}]</span>
                   <span className="w-16 shrink-0 text-accent">{e.type}</span>
                   <span className="text-fg">{e.message}</span>
                 </li>

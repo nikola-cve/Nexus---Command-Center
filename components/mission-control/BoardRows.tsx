@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTransition } from "react";
 import { CheckCircle2, Circle, CircleDot, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -53,9 +54,15 @@ export function TaskRow({ task, projectName }: { task: Task; projectName?: strin
       >
         <StatusIcon size={15} />
       </button>
-      <span className={cn("flex-1 truncate", done ? "text-muted line-through" : "text-fg")}>
+      <Link
+        href={`/tasks/${task.id}`}
+        className={cn(
+          "flex-1 truncate hover:text-accent",
+          done ? "text-muted line-through" : "text-fg",
+        )}
+      >
         {task.title}
-      </span>
+      </Link>
       {projectName && <span className="shrink-0 text-xs text-muted">{projectName}</span>}
       <button
         title="Delete task"
@@ -74,7 +81,9 @@ export function ProjectRow({ project }: { project: Project }) {
   return (
     <li className="group">
       <div className="flex items-center gap-2 text-sm">
-        <span className="flex-1 truncate text-fg">{project.name}</span>
+        <Link href={`/projects/${project.id}`} className="flex-1 truncate text-fg hover:text-accent">
+          {project.name}
+        </Link>
         <select
           value={project.priority}
           disabled={pending}
@@ -158,7 +167,12 @@ export function DecisionRow({ decision }: { decision: Decision }) {
   return (
     <li className="group">
       <div className="flex items-start gap-2">
-        <span className="flex-1 text-sm text-fg">{decision.decision}</span>
+        <Link
+          href={`/decisions/${decision.id}`}
+          className="flex-1 text-sm text-fg hover:text-accent"
+        >
+          {decision.decision}
+        </Link>
         <button
           title="Delete decision"
           disabled={pending}

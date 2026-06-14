@@ -9,11 +9,22 @@ import type {
   Task,
 } from "@/lib/db/types";
 
-/**
- * Fetch everything the Mission Control dashboard needs in parallel.
- * Returns null when Supabase is not configured yet, so the UI can show a
- * clear setup message instead of crashing. Runs as the signed-in user (RLS).
- */
+export type ProjectDetail = {
+  project: Project;
+  tasks: Task[];
+  decisions: Decision[];
+  research: Research[];
+  history: ActivityEvent[];
+};
+
+export type TaskDetail = { task: Task; project: Project | null; history: ActivityEvent[] };
+export type DecisionDetail = {
+  decision: Decision;
+  project: Project | null;
+  history: ActivityEvent[];
+};
+
+/** Everything the dashboard and section pages need. Null when not configured. */
 export async function getDashboardData(): Promise<DashboardData | null> {
   if (!isSupabaseConfigured) return null;
   const sb = await createSupabaseServerClient();
@@ -37,17 +48,97 @@ export async function getDashboardData(): Promise<DashboardData | null> {
   };
 }
 
+export async function getProjectDetail(id: string): Promise<ProjectDetail | null> {
+  if (!isSupabaseConfigured) return null;
+  const sb = await createSupabaseServerClient();
+  const { data: project } = await sb.from("projects").select("*").eq("id", id).maybeSingle();
+  if (!project) return null;
+
+  const [tasks, decisions, research] = await Promise.all([
+    sb.from("tasks").select("*").eq("project_id", id).order("created_at", { ascending: true }),
+    sb.from("decisions").select("*").eq("project_id", id).order("created_at", { ascending: false }),
+    sb.from("research").select("*").eq("project_id", id).order("created_at", { ascending: false }),
+  ]);
+
+  const tasksData = (tasks.data ?? []) as Task[];
+  const decisionsData = (decisions.data ?? []) as Decision[];
+  const researchData = (research.data ?? []) as Research[];
+
+  // History: events for this project and any of its child items (the "traces").
+  const refs = [
+    id,
+    ...tasksData.map((t) => t.id),
+    ...decisionsData.map((d) => d.id),
+    ...researchData.map((r) => r.id),
+  ];
+  const { data: events } = await sb
+    .from("events")
+    .select("*")
+    .in("ref", refs)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  return {
+    project: project as Project,
+    tasks: tasksData,
+    decisions: decisionsData,
+    research: researchData,
+    history: (events ?? []) as ActivityEvent[],
+  };
+}
+
+export async function getTaskDetail(id: string): Promise<TaskDetail | null> {
+  if (!isSupabaseConfigured) return null;
+  const sb = await createSupabaseServerClient();
+  const { data: task } = await sb.from("tasks").select("*").eq("id", id).maybeSingle();
+  if (!task) return null;
+  const t = task as Task;
+  const [project, events] = await Promise.all([
+    t.project_id
+      ? sb.from("projects").select("*").eq("id", t.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    sb.from("events").select("*").eq("ref", id).order("created_at", { ascending: false }).limit(50),
+  ]);
+  return {
+    task: t,
+    project: (project.data ?? null) as Project | null,
+    history: (events.data ?? []) as ActivityEvent[],
+  };
+}
+
+export async function getDecisionDetail(id: string): Promise<DecisionDetail | null> {
+  if (!isSupabaseConfigured) return null;
+  const sb = await createSupabaseServerClient();
+  const { data: decision } = await sb.from("decisions").select("*").eq("id", id).maybeSingle();
+  if (!decision) return null;
+  const d = decision as Decision;
+  const [project, events] = await Promise.all([
+    d.project_id
+      ? sb.from("projects").select("*").eq("id", d.project_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    sb.from("events").select("*").eq("ref", id).order("created_at", { ascending: false }).limit(50),
+  ]);
+  return {
+    decision: d,
+    project: (project.data ?? null) as Project | null,
+    history: (events.data ?? []) as ActivityEvent[],
+  };
+}
+
+// ---- Mutations ----
+
 export async function createProject(input: {
   name: string;
   priority: Project["priority"];
 }): Promise<void> {
   const sb = await createSupabaseServerClient();
-  const { error } = await sb.from("projects").insert({
-    name: input.name,
-    priority: input.priority,
-  });
+  const { data, error } = await sb
+    .from("projects")
+    .insert({ name: input.name, priority: input.priority })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
-  await logEvent("task", "project", `Project created: ${input.name}`);
+  if (data) await logEvent("project", data.id, "Project created");
 }
 
 export async function createTask(input: {
@@ -55,12 +146,13 @@ export async function createTask(input: {
   projectId: string | null;
 }): Promise<void> {
   const sb = await createSupabaseServerClient();
-  const { error } = await sb.from("tasks").insert({
-    title: input.title,
-    project_id: input.projectId,
-  });
+  const { data, error } = await sb
+    .from("tasks")
+    .insert({ title: input.title, project_id: input.projectId })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
-  await logEvent("task", "task", `Task added: ${input.title}`);
+  if (data) await logEvent("task", data.id, "Task created");
 }
 
 export async function createDecision(input: {
@@ -68,12 +160,43 @@ export async function createDecision(input: {
   projectId: string | null;
 }): Promise<void> {
   const sb = await createSupabaseServerClient();
-  const { error } = await sb.from("decisions").insert({
-    decision: input.decision,
-    project_id: input.projectId,
-  });
+  const { data, error } = await sb
+    .from("decisions")
+    .insert({ decision: input.decision, project_id: input.projectId })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
-  await logEvent("decision", "decision", `Decision logged: ${input.decision}`);
+  if (data) await logEvent("decision", data.id, "Decision logged");
+}
+
+export async function createOpportunity(input: {
+  title: string;
+  potential: Opportunity["potential"];
+  nextAction: string | null;
+}): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { data, error } = await sb
+    .from("opportunities")
+    .insert({ title: input.title, potential: input.potential, next_action: input.nextAction })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  if (data) await logEvent("opportunity", data.id, "Opportunity added");
+}
+
+export async function createResearch(input: {
+  title: string;
+  sourceUrl: string | null;
+  summary: string | null;
+}): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { data, error } = await sb
+    .from("research")
+    .insert({ title: input.title, source_url: input.sourceUrl, summary: input.summary })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  if (data) await logEvent("research", data.id, "Research saved");
 }
 
 export async function toggleTaskStatus(id: string, current: Task["status"]): Promise<void> {
@@ -81,6 +204,38 @@ export async function toggleTaskStatus(id: string, current: Task["status"]): Pro
   const sb = await createSupabaseServerClient();
   const { error } = await sb.from("tasks").update({ status: next }).eq("id", id);
   if (error) throw new Error(error.message);
+  await logEvent("task", id, `Status set to ${next}`);
+}
+
+export async function updateProjectMeta(
+  id: string,
+  patch: { priority?: Project["priority"]; status?: Project["status"] },
+): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb
+    .from("projects")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  const what = patch.priority ? `priority ${patch.priority}` : patch.status ? `status ${patch.status}` : "details";
+  await logEvent("project", id, `Updated ${what}`);
+}
+
+export async function updateProjectNotes(id: string, notes: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb
+    .from("projects")
+    .update({ notes, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  await logEvent("project", id, "Updated description");
+}
+
+export async function updateTaskNotes(id: string, notes: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("tasks").update({ notes }).eq("id", id);
+  if (error) throw new Error(error.message);
+  await logEvent("task", id, "Updated notes");
 }
 
 export async function deleteTask(id: string): Promise<void> {
@@ -95,52 +250,10 @@ export async function deleteProject(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function updateProjectMeta(
-  id: string,
-  patch: { priority?: Project["priority"]; status?: Project["status"] },
-): Promise<void> {
-  const sb = await createSupabaseServerClient();
-  const { error } = await sb
-    .from("projects")
-    .update({ ...patch, updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) throw new Error(error.message);
-}
-
-export async function createOpportunity(input: {
-  title: string;
-  potential: Opportunity["potential"];
-  nextAction: string | null;
-}): Promise<void> {
-  const sb = await createSupabaseServerClient();
-  const { error } = await sb.from("opportunities").insert({
-    title: input.title,
-    potential: input.potential,
-    next_action: input.nextAction,
-  });
-  if (error) throw new Error(error.message);
-  await logEvent("task", "opportunity", `Opportunity added: ${input.title}`);
-}
-
 export async function deleteOpportunity(id: string): Promise<void> {
   const sb = await createSupabaseServerClient();
   const { error } = await sb.from("opportunities").delete().eq("id", id);
   if (error) throw new Error(error.message);
-}
-
-export async function createResearch(input: {
-  title: string;
-  sourceUrl: string | null;
-  summary: string | null;
-}): Promise<void> {
-  const sb = await createSupabaseServerClient();
-  const { error } = await sb.from("research").insert({
-    title: input.title,
-    source_url: input.sourceUrl,
-    summary: input.summary,
-  });
-  if (error) throw new Error(error.message);
-  await logEvent("task", "research", `Research saved: ${input.title}`);
 }
 
 export async function deleteResearch(id: string): Promise<void> {

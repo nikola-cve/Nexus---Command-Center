@@ -14,6 +14,8 @@ import {
   deleteTask,
   toggleTaskStatus,
   updateProjectMeta,
+  updateProjectNotes,
+  updateTaskNotes,
 } from "@/lib/data";
 import type { Opportunity, Project, Task } from "@/lib/db/types";
 
@@ -159,6 +161,26 @@ export async function deleteResearchAction(id: string): Promise<ActionResult> {
 export async function deleteDecisionAction(id: string): Promise<ActionResult> {
   try {
     await deleteDecision(id);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateProjectNotesAction(id: string, notes: string): Promise<ActionResult> {
+  try {
+    await updateProjectNotes(id, notes);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateTaskNotesAction(id: string, notes: string): Promise<ActionResult> {
+  try {
+    await updateTaskNotes(id, notes);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
