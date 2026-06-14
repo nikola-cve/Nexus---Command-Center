@@ -39,8 +39,8 @@ export default function SideNav() {
             className={cn(
               "flex items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
-                ? "bg-surface text-fg"
-                : "text-muted hover:bg-surface/60 hover:text-fg",
+                ? "bg-accent/15 text-fg ring-1 ring-inset ring-accent/30"
+                : "text-muted hover:bg-white/5 hover:text-fg",
             )}
           >
             <Icon size={17} className={active ? "text-accent" : "text-muted"} />
