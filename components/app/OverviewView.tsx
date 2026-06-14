@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Activity, Bot, Boxes, ListChecks, Target } from "lucide-react";
+import { Activity, Bot, Boxes, ListChecks, Lock, ShieldAlert, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Panel } from "@/components/ui/Panel";
 import AddBar from "@/components/app/AddBar";
@@ -38,6 +38,12 @@ export default function OverviewView({ data }: { data: DashboardData }) {
 
   const inProgress = data.tasks.filter((t) => t.status === "doing").slice(0, 6);
   const projectName = new Map(data.projects.map((p) => [p.id, p.name]));
+
+  const doneSet = new Set(data.tasks.filter((t) => t.status === "done").map((t) => t.id));
+  const awaitingApproval = data.tasks.filter((t) => t.requires_approval && t.status !== "done");
+  const blocked = data.tasks.filter(
+    (t) => t.status !== "done" && (t.depends_on ?? []).some((d) => !doneSet.has(d)),
+  );
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6">
@@ -103,6 +109,48 @@ export default function OverviewView({ data }: { data: DashboardData }) {
         </Panel>
       </div>
 
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel title="Awaiting your approval" icon={<ShieldAlert size={14} />}>
+          {awaitingApproval.length === 0 ? (
+            <p className="text-sm text-muted">Nothing is waiting on a human gate.</p>
+          ) : (
+            <ul className="space-y-2">
+              {awaitingApproval.slice(0, 6).map((t) => (
+                <li key={t.id} className="flex items-center gap-2 text-sm">
+                  <ShieldAlert size={13} className="shrink-0 text-warn" />
+                  <Link href={`/tasks/${t.id}`} className="flex-1 truncate text-fg hover:text-accent">
+                    {t.title}
+                  </Link>
+                  {t.project_id && (
+                    <span className="shrink-0 text-xs text-muted">{projectName.get(t.project_id)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Blocked" icon={<Lock size={14} />}>
+          {blocked.length === 0 ? (
+            <p className="text-sm text-muted">Nothing is blocked by unfinished dependencies.</p>
+          ) : (
+            <ul className="space-y-2">
+              {blocked.slice(0, 6).map((t) => (
+                <li key={t.id} className="flex items-center gap-2 text-sm">
+                  <Lock size={13} className="shrink-0 text-danger" />
+                  <Link href={`/tasks/${t.id}`} className="flex-1 truncate text-fg hover:text-accent">
+                    {t.title}
+                  </Link>
+                  {t.project_id && (
+                    <span className="shrink-0 text-xs text-muted">{projectName.get(t.project_id)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
       <div className="mt-4">
         <Panel title="Quick capture" icon={<ListChecks size={14} />}>
           <AddBar kind="task" projects={data.projects} />
@@ -114,8 +162,8 @@ export default function OverviewView({ data }: { data: DashboardData }) {
           title="Agents"
           icon={<Bot size={14} />}
           action={
-            <Link href="/agents" className="hud-label text-accent hover:underline">
-              manage
+            <Link href="/org" className="hud-label text-accent hover:underline">
+              organization
             </Link>
           }
         >
@@ -136,7 +184,7 @@ export default function OverviewView({ data }: { data: DashboardData }) {
               ))}
           </div>
           <p className="mt-3 text-xs text-muted">
-            Chat and dispatch to agents arrives with the Claude engine (Step 3).
+            Organized into departments and teams. Autonomous dispatch arrives with the Claude engine.
           </p>
         </Panel>
       </div>
