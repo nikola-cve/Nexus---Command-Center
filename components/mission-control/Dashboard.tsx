@@ -19,6 +19,7 @@ import { operatingModes } from "@/lib/modes";
 import type { DashboardData, SystemStatus } from "@/lib/db/types";
 import { signOut } from "@/app/login/actions";
 import QuickAdd from "./QuickAdd";
+import { OpportunityRow, ProjectRow, TaskRow } from "./BoardRows";
 
 const CentralSphere = dynamic(() => import("./CentralSphere"), {
   ssr: false,
@@ -35,12 +36,6 @@ const STATUS_DOT: Record<SystemStatus, string> = {
   healthy: "bg-ok",
   warning: "bg-warn",
   error: "bg-danger",
-};
-
-const priorityColor: Record<string, string> = {
-  high: "text-danger",
-  medium: "text-warn",
-  low: "text-muted",
 };
 
 function Panel({
@@ -89,8 +84,6 @@ export default function Dashboard({ data }: { data: DashboardData }) {
     tasks: data.tasks.filter((t) => t.status !== "done").length,
     opportunities: data.opportunities.length,
   };
-  const openTasks = data.tasks.filter((t) => t.status !== "done");
-
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-5 sm:px-6">
       {/* Top bar */}
@@ -144,18 +137,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             ) : (
               <ul className="space-y-3">
                 {data.projects.map((p) => (
-                  <li key={p.id}>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="truncate text-fg">{p.name}</span>
-                      <span className={cn("hud-label", priorityColor[p.priority])}>{p.priority}</span>
-                    </div>
-                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface">
-                      <div
-                        className="h-full rounded-full bg-accent"
-                        style={{ width: `${p.progress}%` }}
-                      />
-                    </div>
-                  </li>
+                  <ProjectRow key={p.id} project={p} />
                 ))}
               </ul>
             )}
@@ -230,40 +212,23 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             ) : (
               <ul className="space-y-3">
                 {data.opportunities.map((o) => (
-                  <li key={o.id} className="rounded-lg border border-line bg-surface/40 p-3">
-                    <div className="text-sm text-fg">{o.title}</div>
-                    <div className="mt-1 flex items-center justify-between">
-                      <span className={cn("hud-label", priorityColor[o.potential])}>
-                        {o.potential} potential
-                      </span>
-                      <span className="text-xs text-muted">{o.next_action}</span>
-                    </div>
-                  </li>
+                  <OpportunityRow key={o.id} opportunity={o} />
                 ))}
               </ul>
             )}
           </Panel>
 
-          <Panel title="Open Tasks" icon={<ListChecks size={14} />}>
-            {openTasks.length === 0 ? (
-              <p className="text-sm text-muted">No open tasks.</p>
+          <Panel title="Tasks" icon={<ListChecks size={14} />}>
+            {data.tasks.length === 0 ? (
+              <p className="text-sm text-muted">No tasks yet. Add one in Quick Add.</p>
             ) : (
               <ul className="space-y-2">
-                {openTasks.map((t) => (
-                  <li key={t.id} className="flex items-center gap-2 text-sm">
-                    <span
-                      className={cn(
-                        "h-1.5 w-1.5 shrink-0 rounded-full",
-                        t.status === "doing" ? "bg-accent" : "bg-muted",
-                      )}
-                    />
-                    <span className="truncate text-fg">{t.title}</span>
-                    {t.project_id && (
-                      <span className="ml-auto shrink-0 text-xs text-muted">
-                        {projectName.get(t.project_id)}
-                      </span>
-                    )}
-                  </li>
+                {data.tasks.map((t) => (
+                  <TaskRow
+                    key={t.id}
+                    task={t}
+                    projectName={t.project_id ? projectName.get(t.project_id) : undefined}
+                  />
                 ))}
               </ul>
             )}
@@ -308,7 +273,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
       </div>
 
       <footer className="mt-6 text-center">
-        <span className="hud-label">Nexus v0.1 . Step 2 data backbone . Supabase connected</span>
+        <span className="hud-label">Nexus v0.1 . Step 2.7 usability . Supabase connected</span>
       </footer>
     </div>
   );

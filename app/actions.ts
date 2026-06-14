@@ -1,31 +1,130 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createDecision, createProject, createTask } from "@/lib/data";
-import type { Project } from "@/lib/db/types";
+import {
+  createDecision,
+  createOpportunity,
+  createProject,
+  createTask,
+  deleteOpportunity,
+  deleteProject,
+  deleteTask,
+  toggleTaskStatus,
+  updateProjectMeta,
+} from "@/lib/data";
+import type { Opportunity, Project, Task } from "@/lib/db/types";
 
-export async function createProjectAction(formData: FormData) {
-  const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
-  const priority = (String(formData.get("priority") ?? "medium") as Project["priority"]) || "medium";
-  await createProject({ name, priority });
-  revalidatePath("/mission-control");
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
+function fail(e: unknown): ActionResult {
+  return { ok: false, error: e instanceof Error ? e.message : "Something went wrong" };
 }
 
-export async function createTaskAction(formData: FormData) {
-  const title = String(formData.get("title") ?? "").trim();
-  if (!title) return;
-  const projectIdRaw = String(formData.get("projectId") ?? "");
-  const projectId = projectIdRaw.length > 0 ? projectIdRaw : null;
-  await createTask({ title, projectId });
-  revalidatePath("/mission-control");
+export async function createProjectAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const name = String(formData.get("name") ?? "").trim();
+    if (!name) return { ok: false, error: "Name is required" };
+    const priority = String(formData.get("priority") ?? "medium") as Project["priority"];
+    await createProject({ name, priority });
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
 }
 
-export async function createDecisionAction(formData: FormData) {
-  const decision = String(formData.get("decision") ?? "").trim();
-  if (!decision) return;
-  const projectIdRaw = String(formData.get("projectId") ?? "");
-  const projectId = projectIdRaw.length > 0 ? projectIdRaw : null;
-  await createDecision({ decision, projectId });
-  revalidatePath("/mission-control");
+export async function createTaskAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const title = String(formData.get("title") ?? "").trim();
+    if (!title) return { ok: false, error: "Title is required" };
+    const projectId = String(formData.get("projectId") ?? "") || null;
+    await createTask({ title, projectId });
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createOpportunityAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const title = String(formData.get("title") ?? "").trim();
+    if (!title) return { ok: false, error: "Title is required" };
+    const potential = String(formData.get("potential") ?? "medium") as Opportunity["potential"];
+    const nextAction = String(formData.get("nextAction") ?? "").trim() || null;
+    await createOpportunity({ title, potential, nextAction });
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createDecisionAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const decision = String(formData.get("decision") ?? "").trim();
+    if (!decision) return { ok: false, error: "Decision is required" };
+    const projectId = String(formData.get("projectId") ?? "") || null;
+    await createDecision({ decision, projectId });
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function toggleTaskStatusAction(
+  id: string,
+  current: Task["status"],
+): Promise<ActionResult> {
+  try {
+    await toggleTaskStatus(id, current);
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteTaskAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteTask(id);
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteProjectAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteProject(id);
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateProjectMetaAction(
+  id: string,
+  patch: { priority?: Project["priority"]; status?: Project["status"] },
+): Promise<ActionResult> {
+  try {
+    await updateProjectMeta(id, patch);
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteOpportunityAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteOpportunity(id);
+    revalidatePath("/mission-control");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
 }

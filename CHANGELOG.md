@@ -2,6 +2,13 @@
 
 All notable changes to Nexus Command Center, newest first.
 
+## Step 2.7: Usability pass
+- Tasks are now actionable: cycle status (todo, doing, done) and delete.
+- Projects: change priority and status inline, and delete.
+- Opportunities: add (new Quick Add tab) and delete.
+- Toast notifications (sonner) on every action; server action errors are surfaced, not crashing.
+- Tasks panel now shows all tasks (done dimmed and struck) so status can be toggled both ways.
+
 ## Step 2.5: Foundation hardening
 
 ### 2.5a: Single-user auth
