@@ -4,24 +4,37 @@ import { revalidatePath } from "next/cache";
 import {
   createAgent,
   createDecision,
+  createDepartment,
+  createDocument,
   createHandoff,
   createOpportunity,
+  createPhase,
   createProject,
   createResearch,
   createTask,
+  createTeam,
   deleteAgent,
   deleteDecision,
+  deleteDepartment,
+  deleteDocument,
   deleteOpportunity,
+  deletePhase,
   deleteProject,
   deleteResearch,
   deleteTask,
+  deleteTeam,
   toggleTaskStatus,
   updateAgent,
+  updateDepartment,
+  updateDocument,
+  updatePhase,
   updateProjectMeta,
   updateProjectNotes,
   updateTaskNotes,
+  updateTaskPlan,
+  updateTeam,
 } from "@/lib/data";
-import type { Opportunity, Project, Task } from "@/lib/db/types";
+import type { DocumentType, Opportunity, Phase, Project, Task } from "@/lib/db/types";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -47,7 +60,10 @@ export async function createTaskAction(formData: FormData): Promise<ActionResult
     const title = String(formData.get("title") ?? "").trim();
     if (!title) return { ok: false, error: "Title is required" };
     const projectId = String(formData.get("projectId") ?? "") || null;
-    await createTask({ title, projectId });
+    const phaseId = String(formData.get("phaseId") ?? "") || null;
+    const teamId = String(formData.get("teamId") ?? "") || null;
+    const assigneeAgentId = String(formData.get("assigneeAgentId") ?? "") || null;
+    await createTask({ title, projectId, phaseId, teamId, assigneeAgentId });
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {
@@ -207,7 +223,17 @@ export async function createAgentAction(formData: FormData): Promise<ActionResul
 
 export async function updateAgentAction(
   id: string,
-  patch: { name?: string; role?: string; system_prompt?: string; color?: string; enabled?: boolean },
+  patch: {
+    name?: string;
+    role?: string;
+    system_prompt?: string;
+    color?: string;
+    enabled?: boolean;
+    team_id?: string | null;
+    model?: string;
+    skills?: string[];
+    tools?: string[];
+  },
 ): Promise<ActionResult> {
   try {
     await updateAgent(id, patch);
@@ -231,6 +257,183 @@ export async function deleteAgentAction(id: string): Promise<ActionResult> {
 export async function saveHandoffAction(scope: string, content: string): Promise<ActionResult> {
   try {
     await createHandoff(scope, content);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ---- Organization actions ----
+
+export async function createDepartmentAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const name = String(formData.get("name") ?? "").trim();
+    if (!name) return { ok: false, error: "Name is required" };
+    await createDepartment({ name });
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateDepartmentAction(
+  id: string,
+  patch: { name?: string; description?: string; color?: string; icon?: string },
+): Promise<ActionResult> {
+  try {
+    await updateDepartment(id, patch);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteDepartmentAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteDepartment(id);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createTeamAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const name = String(formData.get("name") ?? "").trim();
+    if (!name) return { ok: false, error: "Name is required" };
+    const departmentId = String(formData.get("departmentId") ?? "");
+    if (!departmentId) return { ok: false, error: "Department is required" };
+    await createTeam({ name, departmentId });
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateTeamAction(
+  id: string,
+  patch: { name?: string; description?: string; department_id?: string | null },
+): Promise<ActionResult> {
+  try {
+    await updateTeam(id, patch);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteTeamAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteTeam(id);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ---- Plan actions (phases + task plan) ----
+
+export async function createPhaseAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const name = String(formData.get("name") ?? "").trim();
+    if (!name) return { ok: false, error: "Name is required" };
+    const projectId = String(formData.get("projectId") ?? "");
+    if (!projectId) return { ok: false, error: "Project is required" };
+    await createPhase({ projectId, name });
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updatePhaseAction(
+  id: string,
+  patch: { name?: string; status?: Phase["status"]; sort?: number },
+): Promise<ActionResult> {
+  try {
+    await updatePhase(id, patch);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deletePhaseAction(id: string): Promise<ActionResult> {
+  try {
+    await deletePhase(id);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateTaskPlanAction(
+  id: string,
+  patch: {
+    phase_id?: string | null;
+    assignee_agent_id?: string | null;
+    team_id?: string | null;
+    depends_on?: string[];
+    start_date?: string | null;
+    due?: string | null;
+    priority?: Task["priority"];
+    status?: Task["status"];
+    requires_approval?: boolean;
+    title?: string;
+    sort?: number;
+  },
+): Promise<ActionResult> {
+  try {
+    await updateTaskPlan(id, patch);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ---- Document actions ----
+
+export async function createDocumentAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const projectId = String(formData.get("projectId") ?? "");
+    if (!projectId) return { ok: false, error: "Project is required" };
+    const type = (String(formData.get("type") ?? "note") || "note") as DocumentType;
+    const title = String(formData.get("title") ?? "").trim() || "Untitled";
+    await createDocument({ projectId, type, title });
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateDocumentAction(
+  id: string,
+  patch: { title?: string; content?: string },
+): Promise<ActionResult> {
+  try {
+    await updateDocument(id, patch);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteDocumentAction(id: string): Promise<ActionResult> {
+  try {
+    await deleteDocument(id);
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (e) {

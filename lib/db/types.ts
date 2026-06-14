@@ -22,6 +22,56 @@ export type Task = {
   due: string | null;
   notes: string | null;
   created_at: string;
+  // Agentic org / plan fields (S1)
+  phase_id: string | null;
+  assignee_agent_id: string | null;
+  team_id: string | null;
+  depends_on: string[];
+  start_date: string | null;
+  sort: number;
+  requires_approval: boolean;
+};
+
+export type Phase = {
+  id: string;
+  project_id: string;
+  name: string;
+  status: "todo" | "doing" | "done";
+  sort: number;
+  created_at: string;
+};
+
+export type Department = {
+  id: string;
+  slug: string | null;
+  name: string;
+  description: string | null;
+  color: string;
+  icon: string | null;
+  sort: number;
+  created_at: string;
+};
+
+export type Team = {
+  id: string;
+  department_id: string | null;
+  slug: string | null;
+  name: string;
+  description: string | null;
+  sort: number;
+  created_at: string;
+};
+
+export type DocumentType = "product_map" | "design" | "prd" | "note";
+
+export type ProjectDocument = {
+  id: string;
+  project_id: string;
+  type: DocumentType;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Decision = {
@@ -72,6 +122,26 @@ export type Agent = {
   sort: number;
   created_at: string;
   updated_at: string;
+  // Agentic org fields (S1)
+  team_id: string | null;
+  skills: string[];
+  model: string;
+  tools: string[];
+};
+
+/** Nested org structure for the Org screen: departments to teams to agents. */
+export type TeamWithAgents = Team & { agents: Agent[] };
+export type DepartmentWithTeams = Department & { teams: TeamWithAgents[] };
+export type OrgTree = {
+  departments: DepartmentWithTeams[];
+  unassigned: Agent[];
+};
+
+/** A project plan: ordered phases, each with its ordered tasks. */
+export type PhaseWithTasks = Phase & { tasks: Task[] };
+export type ProjectPlan = {
+  phases: PhaseWithTasks[];
+  unphased: Task[];
 };
 
 export type DashboardData = {

@@ -4,10 +4,20 @@ import type {
   Agent,
   DashboardData,
   Decision,
+  Department,
+  DepartmentWithTeams,
+  DocumentType,
   Opportunity,
+  OrgTree,
+  Phase,
+  PhaseWithTasks,
   Project,
+  ProjectDocument,
+  ProjectPlan,
   Research,
   Task,
+  Team,
+  TeamWithAgents,
 } from "@/lib/db/types";
 
 export type ProjectDetail = {
@@ -85,7 +95,17 @@ export async function createAgent(input: { name: string; role: string }): Promis
 
 export async function updateAgent(
   id: string,
-  patch: { name?: string; role?: string; system_prompt?: string; color?: string; enabled?: boolean },
+  patch: {
+    name?: string;
+    role?: string;
+    system_prompt?: string;
+    color?: string;
+    enabled?: boolean;
+    team_id?: string | null;
+    model?: string;
+    skills?: string[];
+    tools?: string[];
+  },
 ): Promise<void> {
   const sb = await createSupabaseServerClient();
   const { error } = await sb
@@ -233,11 +253,20 @@ export async function createProject(input: {
 export async function createTask(input: {
   title: string;
   projectId: string | null;
+  phaseId?: string | null;
+  teamId?: string | null;
+  assigneeAgentId?: string | null;
 }): Promise<void> {
   const sb = await createSupabaseServerClient();
   const { data, error } = await sb
     .from("tasks")
-    .insert({ title: input.title, project_id: input.projectId })
+    .insert({
+      title: input.title,
+      project_id: input.projectId,
+      phase_id: input.phaseId ?? null,
+      team_id: input.teamId ?? null,
+      assignee_agent_id: input.assigneeAgentId ?? null,
+    })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
@@ -366,4 +395,238 @@ export async function createHandoff(scope: string, content: string): Promise<voi
 async function logEvent(type: string, ref: string, message: string): Promise<void> {
   const sb = await createSupabaseServerClient();
   await sb.from("events").insert({ type, ref, message });
+}
+
+// ---- Organization (departments / teams / agents) ----
+
+/** The full org tree: departments to teams to agents, plus any unassigned agents. */
+export async function getOrgTree(): Promise<OrgTree> {
+  if (!isSupabaseConfigured) return { departments: [], unassigned: [] };
+  const sb = await createSupabaseServerClient();
+  const [deps, teams, agents] = await Promise.all([
+    sb.from("departments").select("*").order("sort", { ascending: true }),
+    sb.from("teams").select("*").order("sort", { ascending: true }),
+    sb.from("agents").select("*").order("sort", { ascending: true }),
+  ]);
+  const departments = (deps.data ?? []) as Department[];
+  const teamRows = (teams.data ?? []) as Team[];
+  const agentRows = (agents.data ?? []) as Agent[];
+
+  const agentsByTeam = new Map<string, Agent[]>();
+  for (const a of agentRows) {
+    if (!a.team_id) continue;
+    const list = agentsByTeam.get(a.team_id) ?? [];
+    list.push(a);
+    agentsByTeam.set(a.team_id, list);
+  }
+  const teamsByDept = new Map<string, TeamWithAgents[]>();
+  for (const t of teamRows) {
+    const withAgents: TeamWithAgents = { ...t, agents: agentsByTeam.get(t.id) ?? [] };
+    if (!t.department_id) continue;
+    const list = teamsByDept.get(t.department_id) ?? [];
+    list.push(withAgents);
+    teamsByDept.set(t.department_id, list);
+  }
+  const tree: DepartmentWithTeams[] = departments.map((d) => ({
+    ...d,
+    teams: teamsByDept.get(d.id) ?? [],
+  }));
+  const unassigned = agentRows.filter((a) => !a.team_id);
+  return { departments: tree, unassigned };
+}
+
+export async function getTeams(): Promise<Team[]> {
+  if (!isSupabaseConfigured) return [];
+  const sb = await createSupabaseServerClient();
+  const { data } = await sb.from("teams").select("*").order("sort", { ascending: true });
+  return (data ?? []) as Team[];
+}
+
+export async function createDepartment(input: { name: string }): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { data: maxRow } = await sb
+    .from("departments")
+    .select("sort")
+    .order("sort", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort = ((maxRow?.sort as number) ?? 0) + 1;
+  const { error } = await sb.from("departments").insert({ name: input.name, sort });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateDepartment(
+  id: string,
+  patch: { name?: string; description?: string; color?: string; icon?: string },
+): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("departments").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteDepartment(id: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("departments").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function createTeam(input: { name: string; departmentId: string }): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { data: maxRow } = await sb
+    .from("teams")
+    .select("sort")
+    .eq("department_id", input.departmentId)
+    .order("sort", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort = ((maxRow?.sort as number) ?? 0) + 1;
+  const { error } = await sb
+    .from("teams")
+    .insert({ name: input.name, department_id: input.departmentId, sort });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateTeam(
+  id: string,
+  patch: { name?: string; description?: string; department_id?: string | null },
+): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("teams").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteTeam(id: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("teams").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+// ---- Project plan (phases + tasks) ----
+
+/** Ordered phases each with their ordered tasks, plus tasks not yet in a phase. */
+export async function getProjectPlan(projectId: string): Promise<ProjectPlan> {
+  if (!isSupabaseConfigured) return { phases: [], unphased: [] };
+  const sb = await createSupabaseServerClient();
+  const [phases, tasks] = await Promise.all([
+    sb.from("phases").select("*").eq("project_id", projectId).order("sort", { ascending: true }),
+    sb
+      .from("tasks")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: true }),
+  ]);
+  const phaseRows = (phases.data ?? []) as Phase[];
+  const taskRows = (tasks.data ?? []) as Task[];
+  const byPhase = new Map<string, Task[]>();
+  for (const t of taskRows) {
+    if (!t.phase_id) continue;
+    const list = byPhase.get(t.phase_id) ?? [];
+    list.push(t);
+    byPhase.set(t.phase_id, list);
+  }
+  const withTasks: PhaseWithTasks[] = phaseRows.map((p) => ({ ...p, tasks: byPhase.get(p.id) ?? [] }));
+  const unphased = taskRows.filter((t) => !t.phase_id);
+  return { phases: withTasks, unphased };
+}
+
+export async function createPhase(input: { projectId: string; name: string }): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { data: maxRow } = await sb
+    .from("phases")
+    .select("sort")
+    .eq("project_id", input.projectId)
+    .order("sort", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort = ((maxRow?.sort as number) ?? 0) + 1;
+  const { error } = await sb
+    .from("phases")
+    .insert({ project_id: input.projectId, name: input.name, sort });
+  if (error) throw new Error(error.message);
+  await logEvent("project", input.projectId, `Phase added: ${input.name}`);
+}
+
+export async function updatePhase(
+  id: string,
+  patch: { name?: string; status?: Phase["status"]; sort?: number },
+): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("phases").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deletePhase(id: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("phases").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/** Update the plan-level fields of a task (owner, dependencies, dates, gate, phase). */
+export async function updateTaskPlan(
+  id: string,
+  patch: {
+    phase_id?: string | null;
+    assignee_agent_id?: string | null;
+    team_id?: string | null;
+    depends_on?: string[];
+    start_date?: string | null;
+    due?: string | null;
+    priority?: Task["priority"];
+    status?: Task["status"];
+    requires_approval?: boolean;
+    title?: string;
+    sort?: number;
+  },
+): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("tasks").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+  await logEvent("task", id, "Task plan updated");
+}
+
+// ---- Documents (product map, design, PRD, notes) ----
+
+export async function getDocuments(projectId: string): Promise<ProjectDocument[]> {
+  if (!isSupabaseConfigured) return [];
+  const sb = await createSupabaseServerClient();
+  const { data } = await sb
+    .from("documents")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: true });
+  return (data ?? []) as ProjectDocument[];
+}
+
+export async function createDocument(input: {
+  projectId: string;
+  type: DocumentType;
+  title: string;
+}): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { data, error } = await sb
+    .from("documents")
+    .insert({ project_id: input.projectId, type: input.type, title: input.title })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  if (data) await logEvent("project", input.projectId, `Document created: ${input.title}`);
+}
+
+export async function updateDocument(
+  id: string,
+  patch: { title?: string; content?: string },
+): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb
+    .from("documents")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  const sb = await createSupabaseServerClient();
+  const { error } = await sb.from("documents").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }

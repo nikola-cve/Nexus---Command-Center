@@ -6,6 +6,7 @@ import {
   Lightbulb,
   ListChecks,
   Map,
+  Network,
   Notebook,
   type LucideIcon,
 } from "lucide-react";
@@ -22,6 +23,7 @@ export type Section = {
 /** Navigation sections. Each has its own accent color so the app is not all one color. */
 export const sections: Section[] = [
   { key: "overview", label: "Overview", href: "/mission-control", icon: LayoutDashboard, text: "text-accent", border: "border-accent" },
+  { key: "org", label: "Organization", href: "/org", icon: Network, text: "text-accent-2", border: "border-accent-2" },
   { key: "agents", label: "Agents", href: "/agents", icon: Bot, text: "text-accent-2", border: "border-accent-2" },
   { key: "projects", label: "Projects", href: "/projects", icon: Boxes, text: "text-accent", border: "border-accent" },
   { key: "tasks", label: "Tasks", href: "/tasks", icon: ListChecks, text: "text-ok", border: "border-ok" },

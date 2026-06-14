@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import AgentEditor from "@/components/app/AgentEditor";
 import NotConfigured from "@/components/mission-control/NotConfigured";
-import { getAgentDetail } from "@/lib/data";
+import { getAgentDetail, getTeams } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function AgentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (!isSupabaseConfigured) return <NotConfigured />;
   const { id } = await params;
-  const agent = await getAgentDetail(id);
+  const [agent, teams] = await Promise.all([getAgentDetail(id), getTeams()]);
   if (!agent) notFound();
 
   return (
@@ -26,7 +26,7 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ id
         <h1 className="text-2xl font-semibold tracking-wide text-accent-2">{agent.name}</h1>
         <p className="hud-label mt-1">Edit how this agent thinks and acts</p>
       </header>
-      <AgentEditor agent={agent} />
+      <AgentEditor agent={agent} teams={teams} />
     </div>
   );
 }
