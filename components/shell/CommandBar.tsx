@@ -6,7 +6,8 @@ import { PanelLeft, Search } from "lucide-react";
 function crumb(path: string): string {
   const seg = path.split("/").filter(Boolean)[0] ?? "bridge";
   const map: Record<string, string> = {
-    bridge: "Bridge",
+    bridge: "Command Center",
+    sectors: "Sector",
     org: "Organization",
     projects: "Projects",
     agents: "Organization",
@@ -23,10 +24,10 @@ function crumb(path: string): string {
 export default function CommandBar({ onToggleExplorer }: { onToggleExplorer: () => void }) {
   const path = usePathname();
   return (
-    <header className="flex h-12 shrink-0 items-center gap-3 border-b border-white/10 bg-black/40 px-3 backdrop-blur">
+    <header className="flex h-12 shrink-0 items-center gap-3 border-b border-line bg-surface px-3 backdrop-blur">
       <button
         onClick={onToggleExplorer}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-fg"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-fg"
         title="Toggle explorer"
       >
         <PanelLeft size={16} />
@@ -42,11 +43,11 @@ export default function CommandBar({ onToggleExplorer }: { onToggleExplorer: () 
 
       <button
         onClick={() => window.dispatchEvent(new CustomEvent("nexus:command"))}
-        className="ml-auto flex h-8 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-muted transition-colors hover:border-white/20 hover:text-fg"
+        className="ml-auto flex h-8 items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 text-sm text-muted transition-colors hover:border-muted/40 hover:text-fg"
       >
         <Search size={15} />
         <span className="hidden sm:inline">Search or run a command</span>
-        <span className="telemetry ml-1 hidden rounded border border-white/10 px-1.5 py-0.5 text-[10px] sm:inline">
+        <span className="telemetry ml-1 hidden rounded border border-line px-1.5 py-0.5 text-[10px] sm:inline">
           Cmd K
         </span>
       </button>

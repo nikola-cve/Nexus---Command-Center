@@ -33,7 +33,7 @@ export default function StatusBar({
   }, []);
 
   return (
-    <footer className="telemetry flex h-7 shrink-0 items-center gap-4 border-t border-white/10 bg-black/50 px-3 text-[11px] text-muted backdrop-blur">
+    <footer className="telemetry flex h-7 shrink-0 items-center gap-4 border-t border-line bg-surface px-3 text-[11px] text-muted backdrop-blur">
       <span className="flex items-center gap-1.5 text-ok">
         <span className="node-dot node-pulse h-1.5 w-1.5 bg-current" />
         <span className="text-fg/90">ONLINE</span>

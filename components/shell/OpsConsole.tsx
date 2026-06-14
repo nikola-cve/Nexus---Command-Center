@@ -23,7 +23,7 @@ export default function OpsConsole({
   const [tab, setTab] = useState<"log" | "problems">("log");
 
   return (
-    <section className="shrink-0 border-t border-white/10 bg-black/40 backdrop-blur">
+    <section className="shrink-0 border-t border-line bg-surface backdrop-blur">
       <div className="flex h-9 items-center gap-1 px-2">
         <Terminal size={13} className="ml-1 mr-1 text-muted" />
         <button
@@ -55,7 +55,7 @@ export default function OpsConsole({
         </button>
         <button
           onClick={onToggle}
-          className="ml-auto flex h-7 w-7 items-center justify-center rounded text-muted hover:bg-white/5 hover:text-fg"
+          className="ml-auto flex h-7 w-7 items-center justify-center rounded text-muted hover:bg-surface-2 hover:text-fg"
           title={open ? "Collapse" : "Expand"}
         >
           {open ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
@@ -86,7 +86,7 @@ export default function OpsConsole({
                 <li key={`${p.kind}-${p.id}`}>
                   <Link
                     href={`/tasks/${p.id}`}
-                    className="flex items-center gap-2 rounded px-1 py-1 text-[12px] hover:bg-white/5"
+                    className="flex items-center gap-2 rounded px-1 py-1 text-[12px] hover:bg-surface-2"
                   >
                     {p.kind === "blocked" ? (
                       <Lock size={12} className="text-danger" />

@@ -18,7 +18,7 @@ const SPACES: { href: string; label: string; icon: LucideIcon }[] = [
 export default function Rail() {
   const path = usePathname();
   return (
-    <nav className="flex w-14 shrink-0 flex-col items-center gap-1 border-r border-white/10 bg-black/30 py-2 backdrop-blur">
+    <nav className="flex w-14 shrink-0 flex-col items-center gap-1 border-r border-line bg-surface py-2">
       <Link
         href="/bridge"
         className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent-2 text-sm font-bold text-white shadow-lg"
@@ -36,7 +36,7 @@ export default function Rail() {
             title={s.label}
             className={cn(
               "group relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors",
-              active ? "bg-accent/15 text-accent ring-1 ring-inset ring-accent/30" : "text-muted hover:bg-white/5 hover:text-fg",
+              active ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/25" : "text-muted hover:bg-surface-2 hover:text-fg",
             )}
           >
             <Icon size={18} />
@@ -48,7 +48,7 @@ export default function Rail() {
         <button
           type="submit"
           title="Sign out"
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-muted transition-colors hover:bg-white/5 hover:text-danger"
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-muted transition-colors hover:bg-surface-2 hover:text-danger"
         >
           <LogOut size={17} />
         </button>

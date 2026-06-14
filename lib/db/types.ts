@@ -50,6 +50,7 @@ export type Department = {
   icon: string | null;
   sort: number;
   created_at: string;
+  lead_agent_id: string | null;
 };
 
 export type Team = {
@@ -60,6 +61,7 @@ export type Team = {
   description: string | null;
   sort: number;
   created_at: string;
+  lead_agent_id: string | null;
 };
 
 export type DocumentType = "product_map" | "design" | "prd" | "note";

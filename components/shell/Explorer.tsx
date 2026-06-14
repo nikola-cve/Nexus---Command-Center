@@ -59,14 +59,14 @@ function Tree({
             <div key={d.id}>
               <button
                 onClick={() => setOpenDept((s) => ({ ...s, [d.id]: !open }))}
-                className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-[12px] text-fg/90 hover:bg-white/5"
+                className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-[12px] text-fg/90 hover:bg-surface-2"
               >
                 {open ? <ChevronDown size={11} className="text-muted" /> : <ChevronRight size={11} className="text-muted" />}
                 <Glyph icon={d.icon} className="text-accent" />
                 <span className="truncate">{d.name}</span>
               </button>
               {open && (
-                <div className="ml-3 border-l border-white/8 pl-2">
+                <div className="ml-3 border-l border-line pl-2">
                   {d.teams.map((t) => (
                     <div key={t.id} className="py-0.5">
                       <div className="px-2 py-0.5 text-[11px] text-muted">{t.name}</div>
@@ -78,8 +78,8 @@ function Tree({
                             key={a.id}
                             href={`/agents/${a.id}`}
                             className={cn(
-                              "flex items-center gap-1.5 rounded px-2 py-1 text-[12px] hover:bg-white/5",
-                              active ? "bg-white/8 text-fg" : "text-fg/80",
+                              "flex items-center gap-1.5 rounded px-2 py-1 text-[12px] hover:bg-surface-2",
+                              active ? "bg-surface-2 text-fg" : "text-fg/80",
                             )}
                           >
                             <span className={cn("node-dot h-1.5 w-1.5", statusMeta[st].text)} />
@@ -106,8 +106,8 @@ function Tree({
               key={p.id}
               href={`/projects/${p.id}`}
               className={cn(
-                "flex items-center gap-1.5 rounded px-2 py-1 text-[12px] hover:bg-white/5",
-                active ? "bg-white/8 text-fg" : "text-fg/80",
+                "flex items-center gap-1.5 rounded px-2 py-1 text-[12px] hover:bg-surface-2",
+                active ? "bg-surface-2 text-fg" : "text-fg/80",
               )}
             >
               {active ? (
@@ -139,7 +139,7 @@ export default function Explorer({
   return (
     <aside
       className={cn(
-        "scroll-thin w-60 shrink-0 overflow-y-auto border-r border-white/10 bg-black/20 backdrop-blur",
+        "scroll-thin w-60 shrink-0 overflow-y-auto border-r border-line bg-surface",
         className,
       )}
     >

@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
-/* Nexus design system: calm premium dark (Linear / Mercury direction) */
+/* Nexus design system: light, refined, modular (SAMS direction) */
 @theme {
-  --color-base: #0a0a0c;
-  --color-surface: #121317;
-  --color-surface-2: #181a20;
-  --color-line: #24262e;
-  --color-accent: #6c5cff;
-  --color-accent-2: #b06cff;
-  --color-warn: #e8b94a;
-  --color-danger: #f0616d;
-  --color-ok: #3ecf8e;
-  --color-info: #4aa8ff;
-  --color-plan: #9b8cff;
-  --color-fg: #e7e9f0;
-  --color-muted: #9398a8;
+  --color-base: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0f2f5;
+  --color-line: #e5e7eb;
+  --color-accent: #5765f2;
+  --color-accent-2: #8b5cf6;
+  --color-warn: #d97706;
+  --color-danger: #e11d48;
+  --color-ok: #16a34a;
+  --color-info: #2f80ed;
+  --color-plan: #6366f1;
+  --color-fg: #1b1f27;
+  --color-muted: #6b7280;
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas,
     "Liberation Mono", monospace;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -16px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px -12px rgba(16, 24, 40, 0.1);
 }
 
 html,
@@ -28,76 +28,45 @@ body {
 }
 
 body {
-  background-color: #07060d;
+  background-color: var(--color-base);
   color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* Rich mesh so the frosted glass has color to refract (Lifestats / Superhuman direction) */
-  background-image:
-    radial-gradient(1000px 700px at 6% -8%, rgba(108, 92, 255, 0.28), transparent 55%),
-    radial-gradient(900px 650px at 100% 2%, rgba(176, 108, 255, 0.2), transparent 55%),
-    radial-gradient(950px 700px at 50% 118%, rgba(74, 168, 255, 0.16), transparent 55%),
-    radial-gradient(700px 500px at 88% 80%, rgba(62, 207, 142, 0.08), transparent 55%);
+  /* one very faint cool tint, kept calm and legible */
+  background-image: radial-gradient(1100px 520px at 50% -260px, rgba(87, 101, 242, 0.05), transparent 60%);
   background-attachment: fixed;
-}
-
-/* Fixed texture layer behind everything: fine dot grid plus low-opacity grain. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
-  background-size: 26px 26px;
-  mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, black 40%, transparent 100%);
-}
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 h1,
 h2,
 h3 {
-  letter-spacing: -0.011em;
+  letter-spacing: -0.013em;
 }
 h1 {
   letter-spacing: -0.02em;
 }
 
-/* Frosted glass card: the signature surface (glassmorphism over the mesh background) */
+/* Clean module surface */
 .panel {
-  position: relative;
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.022));
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 18px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 12px 36px -16px rgba(0, 0, 0, 0.75);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
 }
 
 .panel-hover {
   transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    transform 0.18s ease;
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
 }
 .panel-hover:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 45%, rgba(255, 255, 255, 0.09));
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-line));
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 12px 30px -12px rgba(16, 24, 40, 0.16);
 }
 
-/* Small caption label, restrained (no loud all-caps neon) */
+/* Small caption label */
 .hud-label {
   font-size: 0.72rem;
   letter-spacing: 0.02em;
@@ -105,36 +74,7 @@ h1 {
   font-weight: 500;
 }
 
-/* Neon helpers neutralized for the calm direction */
-.text-glow {
-  text-shadow: none;
-}
-.glow-cyan {
-  box-shadow: none;
-}
-
-@keyframes pulseGlow {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-.animate-pulse-glow {
-  animation: pulseGlow 2s ease-in-out infinite;
-}
-
-/* Accessible focus ring */
-:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
-  outline-offset: 1px;
-}
-
-/* ---- Operating system shell (the Bridge) ---- */
-
-/* Monospace telemetry text: logs, ids, counts, status strip */
+/* Monospace telemetry: logs, ids, counts, status strip */
 .telemetry {
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -142,35 +82,35 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
-/* Nested inset surface inside a glass panel (no blur, slightly darker) */
+/* Nested inset surface inside a module */
 .glass-inset {
-  background: rgba(7, 6, 13, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
 }
 
-/* Thin, quiet scrollbars for the dense panels */
+/* Thin, quiet scrollbars */
 .scroll-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  scrollbar-color: rgba(16, 24, 40, 0.18) transparent;
 }
 .scroll-thin::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
+  background: rgba(16, 24, 40, 0.16);
+  border-radius: 9px;
 }
 .scroll-thin::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(16, 24, 40, 0.28);
 }
 
-/* A status node on the Bridge map: a glowing dot whose color carries state */
+/* Status dot: a small disc whose color carries operational state */
 .node-dot {
   border-radius: 9999px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent),
-    0 0 14px 1px color-mix(in srgb, currentColor 55%, transparent);
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent);
 }
 .node-pulse {
   animation: nodePulse 2.4s ease-in-out infinite;
@@ -178,22 +118,20 @@ h1 {
 @keyframes nodePulse {
   0%,
   100% {
-    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent),
-      0 0 10px 1px color-mix(in srgb, currentColor 45%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 10%, transparent),
-      0 0 20px 3px color-mix(in srgb, currentColor 70%, transparent);
+    box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 8%, transparent);
   }
 }
 
-/* Orbit ring guide around a department core */
-.orbit-ring {
-  border: 1px dashed rgba(255, 255, 255, 0.08);
-  border-radius: 9999px;
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
+  outline-offset: 1px;
 }
 
-/* Rendered markdown (documents: product map, design, PRD) */
+/* Rendered markdown (documents) */
 .prose-doc {
   color: var(--color-fg);
   font-size: 0.9rem;
@@ -203,7 +141,7 @@ h1 {
 .prose-doc h2,
 .prose-doc h3 {
   font-weight: 600;
-  letter-spacing: -0.011em;
+  letter-spacing: -0.013em;
   margin: 1.1em 0 0.5em;
 }
 .prose-doc h1 {
@@ -279,4 +217,12 @@ h1 {
   border: 0;
   border-top: 1px solid var(--color-line);
   margin: 1.2em 0;
+}
+
+/* legacy helpers neutralized */
+.text-glow {
+  text-shadow: none;
+}
+.glow-cyan {
+  box-shadow: none;
 }

@@ -587,6 +587,17 @@ export async function updateTaskPlan(
 
 // ---- Documents (product map, design, PRD, notes) ----
 
+export async function getRecentDocuments(limit = 6): Promise<ProjectDocument[]> {
+  if (!isSupabaseConfigured) return [];
+  const sb = await createSupabaseServerClient();
+  const { data } = await sb
+    .from("documents")
+    .select("*")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as ProjectDocument[];
+}
+
 export async function getDocuments(projectId: string): Promise<ProjectDocument[]> {
   if (!isSupabaseConfigured) return [];
   const sb = await createSupabaseServerClient();
