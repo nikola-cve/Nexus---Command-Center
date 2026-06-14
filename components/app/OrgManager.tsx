@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { createElement, useState, useTransition } from "react";
 import Link from "next/link";
 import { Bot, Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -22,6 +22,11 @@ const COLORS = ["accent", "info", "ok", "accent-2", "warn", "danger", "plan"];
 
 const inputClass =
   "h-9 rounded-md border border-line bg-surface/50 px-3 text-sm text-fg placeholder:text-muted focus:border-accent/50 focus:outline-none";
+
+/** Hook-free wrapper so the icon component is not "created" inside a stateful render. */
+function DeptGlyph({ icon, className }: { icon: string | null; className?: string }) {
+  return createElement(deptIcon(icon), { size: 18, className });
+}
 
 function modelShort(model: string): string {
   if (model.includes("opus")) return "Opus 4.8";
@@ -209,7 +214,6 @@ function DepartmentCard({
   const [color, setColor] = useState(dept.color);
   const [icon, setIcon] = useState(dept.icon ?? "Boxes");
   const [pending, start] = useTransition();
-  const Icon = deptIcon(dept.icon);
   const agentCount = dept.teams.reduce((n, t) => n + t.agents.length, 0);
 
   return (
@@ -217,7 +221,7 @@ function DepartmentCard({
       <header className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <span className={`flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface ${agentColor(dept.color)}`}>
-            <Icon size={18} />
+            <DeptGlyph icon={dept.icon} />
           </span>
           <div>
             <h2 className="text-base font-semibold text-fg">{dept.name}</h2>
