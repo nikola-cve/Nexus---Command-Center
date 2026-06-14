@@ -59,7 +59,7 @@ export function TaskRow({ task, projectName }: { task: Task; projectName?: strin
         title="Delete task"
         disabled={pending}
         onClick={() => run(() => deleteTaskAction(task.id), "Task deleted")}
-        className={cn(iconBtn, "opacity-0 hover:text-danger group-hover:opacity-100")}
+        className={cn(iconBtn, "opacity-70 hover:text-danger sm:opacity-0 sm:group-hover:opacity-100")}
       >
         <Trash2 size={13} />
       </button>
@@ -112,7 +112,7 @@ export function ProjectRow({ project }: { project: Project }) {
           title="Delete project"
           disabled={pending}
           onClick={() => run(() => deleteProjectAction(project.id), "Project deleted")}
-          className={cn(iconBtn, "opacity-0 hover:text-danger group-hover:opacity-100")}
+          className={cn(iconBtn, "opacity-70 hover:text-danger sm:opacity-0 sm:group-hover:opacity-100")}
         >
           <Trash2 size={13} />
         </button>
@@ -134,7 +134,7 @@ export function OpportunityRow({ opportunity }: { opportunity: Opportunity }) {
           title="Delete opportunity"
           disabled={pending}
           onClick={() => run(() => deleteOpportunityAction(opportunity.id), "Opportunity deleted")}
-          className={cn(iconBtn, "opacity-0 hover:text-danger group-hover:opacity-100")}
+          className={cn(iconBtn, "opacity-70 hover:text-danger sm:opacity-0 sm:group-hover:opacity-100")}
         >
           <Trash2 size={13} />
         </button>
