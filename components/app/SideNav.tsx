@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 import { sections } from "@/lib/sections";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,17 @@ export default function SideNav() {
         </span>
         <span className="text-[15px] font-semibold tracking-tight text-fg">Nexus</span>
       </div>
+
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent("nexus:command"))}
+        className="flex shrink-0 items-center gap-2.5 rounded-lg border border-line px-3 py-2 text-sm text-muted transition-colors hover:bg-surface/60 hover:text-fg lg:mb-1"
+      >
+        <Search size={17} />
+        <span className="hidden sm:inline">Search</span>
+        <span className="ml-auto hidden rounded border border-line px-1.5 py-0.5 text-[10px] lg:inline">
+          ⌘K
+        </span>
+      </button>
 
       {sections.map((s) => {
         const active = path === s.href || (s.href !== "/mission-control" && path.startsWith(s.href));

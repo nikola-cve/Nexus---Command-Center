@@ -179,6 +179,41 @@ export async function getDecisionDetail(id: string): Promise<DecisionDetail | nu
   };
 }
 
+export type SearchItem = {
+  id: string;
+  type: string;
+  title: string;
+  subtitle?: string;
+  href: string;
+};
+
+export async function getSearchIndex(): Promise<SearchItem[]> {
+  if (!isSupabaseConfigured) return [];
+  const sb = await createSupabaseServerClient();
+  const [p, t, d, r, o, a] = await Promise.all([
+    sb.from("projects").select("id,name"),
+    sb.from("tasks").select("id,title"),
+    sb.from("decisions").select("id,decision"),
+    sb.from("research").select("id,title"),
+    sb.from("opportunities").select("id,title"),
+    sb.from("agents").select("id,name,role"),
+  ]);
+  const items: SearchItem[] = [];
+  for (const x of (p.data ?? []) as { id: string; name: string }[])
+    items.push({ id: x.id, type: "Project", title: x.name, href: `/projects/${x.id}` });
+  for (const x of (t.data ?? []) as { id: string; title: string }[])
+    items.push({ id: x.id, type: "Task", title: x.title, href: `/tasks/${x.id}` });
+  for (const x of (d.data ?? []) as { id: string; decision: string }[])
+    items.push({ id: x.id, type: "Decision", title: x.decision, href: `/decisions/${x.id}` });
+  for (const x of (r.data ?? []) as { id: string; title: string }[])
+    items.push({ id: x.id, type: "Research", title: x.title, href: `/research` });
+  for (const x of (o.data ?? []) as { id: string; title: string }[])
+    items.push({ id: x.id, type: "Opportunity", title: x.title, href: `/opportunities` });
+  for (const x of (a.data ?? []) as { id: string; name: string; role: string }[])
+    items.push({ id: x.id, type: "Agent", title: x.name, subtitle: x.role, href: `/agents/${x.id}` });
+  return items;
+}
+
 // ---- Mutations ----
 
 export async function createProject(input: {
